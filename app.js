@@ -15,7 +15,6 @@ const firebaseConfig = {
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/ducs7aqwc/image/upload";
 const CLOUDINARY_UPLOAD_PRESET  = "Twisted_Wonderland_Archives";
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -29,8 +28,14 @@ let groupImgRemoved = false;
 let charImgRemoved = false;
 let charProfileRemoved = false;
 
-const GRAY_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22300%22%20style%3D%22background%3A%23555%22%3E%3C%2Fsvg%3E";
+let cropper = null;
+let currentCropTarget = ''; 
+let croppedGroupBlob = null;
+let croppedCoverBlob = null;
+let croppedProfileBlob = null;
+
 const TRANSPARENT_GROUP_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22transparent%22%20stroke%3D%22%23555%22%20stroke-width%3D%222%22%20stroke-dasharray%3D%225%2C5%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22%23555%22%3ENo%20Icon%3C%2Ftext%3E%3C%2Fsvg%3E";
+const COVER_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22140%22%20height%3D%22180%22%20style%3D%22background%3A%23555%22%3E%3C%2Fsvg%3E";
 
 function showToast(message) {
     const toast = document.getElementById('toast');
@@ -41,16 +46,12 @@ function showToast(message) {
 
 function getFileNameFromUrl(url) {
     if (!url) return "ไม่ได้เลือกไฟล์";
-    try {
-        return url.split('/').pop();
-    } catch(e) {
-        return "ไฟล์รูปภาพ";
-    }
+    try { return url.split('/').pop(); } catch(e) { return "ไฟล์รูปภาพ"; }
 }
 
-async function uploadImageToCloudinary(file) {
+async function uploadImageToCloudinary(fileOrBlob) {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', fileOrBlob);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
     try {
         const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
@@ -107,21 +108,66 @@ setupTabs('#character-modal .modal-tabs li', '#character-modal .form-tab');
 setupTabs('#view-modal .modal-tabs li', '#view-modal .v-tab');
 
 // ==========================================
-// 3. ระบบลบรูปภาพ & แสดงชื่อไฟล์
+// 3. ระบบ Crop รูปภาพ
 // ==========================================
+function openCropModal(imageSrc, target, ratio) {
+    currentCropTarget = target;
+    const img = document.getElementById('crop-image-target');
+    img.src = imageSrc;
+    document.getElementById('crop-modal').style.display = 'block';
+
+    if (cropper) cropper.destroy();
+    cropper = new Cropper(img, {
+        aspectRatio: ratio,
+        viewMode: 1,
+        autoCropArea: 1,
+    });
+}
+
+document.getElementById('cancel-crop-btn').onclick = () => {
+    document.getElementById('crop-modal').style.display = 'none';
+    if(currentCropTarget === 'group') document.getElementById('group-image').value = "";
+    if(currentCropTarget === 'cover') document.getElementById('char-image').value = "";
+    if(currentCropTarget === 'profile') document.getElementById('char-profile-image').value = "";
+};
+
+document.getElementById('confirm-crop-btn').onclick = () => {
+    if (!cropper) return;
+    cropper.getCroppedCanvas({ fillColor: 'transparent' }).toBlob((blob) => {
+        if (currentCropTarget === 'group') {
+            croppedGroupBlob = blob;
+            document.getElementById('group-file-name').innerText = "รูปภาพถูกครอบตัดแล้ว";
+            document.getElementById('clear-group-img-btn').style.display = "inline-block";
+            groupImgRemoved = false;
+        } else if (currentCropTarget === 'cover') {
+            croppedCoverBlob = blob;
+            document.getElementById('char-file-name').innerText = "รูปปกถูกครอบตัดแล้ว";
+            document.getElementById('clear-char-img-btn').style.display = "inline-block";
+            charImgRemoved = false;
+        } else if (currentCropTarget === 'profile') {
+            croppedProfileBlob = blob;
+            document.getElementById('char-profile-file-name').innerText = "รูปโปรไฟล์ถูกครอบตัดแล้ว";
+            document.getElementById('clear-char-profile-btn').style.display = "inline-block";
+            charProfileRemoved = false;
+        }
+        document.getElementById('crop-modal').style.display = 'none';
+    }, 'image/png', 0.9);
+};
+
 const grpImgInput = document.getElementById('group-image');
 const grpImgClearBtn = document.getElementById('clear-group-img-btn');
 const grpFileName = document.getElementById('group-file-name');
 
-grpImgInput.addEventListener('change', () => {
-    if (grpImgInput.files.length > 0) {
-        grpFileName.innerText = grpImgInput.files[0].name;
-        grpImgClearBtn.style.display = "inline-block";
-        groupImgRemoved = false;
+grpImgInput.addEventListener('change', function(e) {
+    if (this.files && this.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = (e) => openCropModal(e.target.result, 'group', 1/1);
+        reader.readAsDataURL(this.files[0]);
     }
 });
 grpImgClearBtn.addEventListener('click', () => {
     grpImgInput.value = "";
+    croppedGroupBlob = null;
     grpFileName.innerText = "ไม่ได้เลือกไฟล์";
     grpImgClearBtn.style.display = "none";
     groupImgRemoved = true;
@@ -131,15 +177,16 @@ const charImgInput = document.getElementById('char-image');
 const charImgClearBtn = document.getElementById('clear-char-img-btn');
 const charFileName = document.getElementById('char-file-name');
 
-charImgInput.addEventListener('change', () => {
-    if (charImgInput.files.length > 0) {
-        charFileName.innerText = charImgInput.files[0].name;
-        charImgClearBtn.style.display = "inline-block";
-        charImgRemoved = false;
+charImgInput.addEventListener('change', function(e) {
+    if (this.files && this.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = (e) => openCropModal(e.target.result, 'cover', 3/4);
+        reader.readAsDataURL(this.files[0]);
     }
 });
 charImgClearBtn.addEventListener('click', () => {
     charImgInput.value = "";
+    croppedCoverBlob = null;
     charFileName.innerText = "ไม่ได้เลือกไฟล์";
     charImgClearBtn.style.display = "none";
     charImgRemoved = true;
@@ -149,15 +196,16 @@ const charProfileInput = document.getElementById('char-profile-image');
 const charProfileClearBtn = document.getElementById('clear-char-profile-btn');
 const charProfileFileName = document.getElementById('char-profile-file-name');
 
-charProfileInput.addEventListener('change', () => {
-    if (charProfileInput.files.length > 0) {
-        charProfileFileName.innerText = charProfileInput.files[0].name;
-        charProfileClearBtn.style.display = "inline-block";
-        charProfileRemoved = false;
+charProfileInput.addEventListener('change', function(e) {
+    if (this.files && this.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = (e) => openCropModal(e.target.result, 'profile', 1/1);
+        reader.readAsDataURL(this.files[0]);
     }
 });
 charProfileClearBtn.addEventListener('click', () => {
     charProfileInput.value = "";
+    croppedProfileBlob = null;
     charProfileFileName.innerText = "ไม่ได้เลือกไฟล์";
     charProfileClearBtn.style.display = "none";
     charProfileRemoved = true;
@@ -178,6 +226,7 @@ document.getElementById('add-btn').onclick = () => {
     grpFileName.innerText = "ไม่ได้เลือกไฟล์";
     grpImgClearBtn.style.display = "none";
     groupImgRemoved = false;
+    croppedGroupBlob = null;
     groupModal.style.display = "block";
 };
 
@@ -191,6 +240,8 @@ document.getElementById('add-char-btn').onclick = () => {
     charProfileClearBtn.style.display = "none";
     charImgRemoved = false;
     charProfileRemoved = false;
+    croppedCoverBlob = null;
+    croppedProfileBlob = null;
     charFormModal.style.display = "block";
 };
 
@@ -206,7 +257,7 @@ window.onclick = (e) => {
 };
 
 // ==========================================
-// 5. จัดการข้อมูล Group + ระบบ Drag and Drop แบบแทรกกลาง
+// 5. จัดการข้อมูล Group + ระบบ Drag and Drop
 // ==========================================
 let draggedGroupNode = null;
 
@@ -256,14 +307,19 @@ async function fetchGroups() {
             card.addEventListener('dragover', (e) => e.preventDefault());
             card.addEventListener('drop', async (e) => {
                 e.preventDefault();
+                
                 if(draggedGroupNode && draggedGroupNode !== card) {
                     const rect = card.getBoundingClientRect();
                     const midX = rect.left + rect.width / 2;
+                    
                     if (e.clientX < midX) card.parentNode.insertBefore(draggedGroupNode, card);
                     else card.parentNode.insertBefore(draggedGroupNode, card.nextSibling);
 
-                    const allCards = card.parentNode.querySelectorAll('.group-card');
-                    allCards.forEach((c, i) => updateDoc(doc(db, "groups", c.dataset.id), { order: i }));
+                    const parent = card.parentNode;
+                    const allCards = parent.querySelectorAll('.group-card');
+                    allCards.forEach((c, i) => {
+                        updateDoc(doc(db, "groups", c.dataset.id), { order: i });
+                    });
                 }
             });
 
@@ -294,6 +350,7 @@ document.getElementById('edit-group-btn').onclick = async () => {
     
     grpImgInput.value = "";
     groupImgRemoved = false;
+    croppedGroupBlob = null;
     grpFileName.innerText = "ไม่ได้เลือกไฟล์";
     
     const docSnap = await getDoc(doc(db, "groups", currentGroupId));
@@ -328,8 +385,8 @@ document.getElementById('group-form').onsubmit = async (e) => {
         category: document.getElementById('group-category').value
     };
 
-    if (grpImgInput.files.length > 0) {
-        const imageUrl = await uploadImageToCloudinary(grpImgInput.files[0]);
+    if (croppedGroupBlob) {
+        const imageUrl = await uploadImageToCloudinary(croppedGroupBlob);
         if(imageUrl) groupData.image = imageUrl;
     } else if (groupImgRemoved) {
         groupData.image = deleteField();
@@ -355,7 +412,7 @@ document.getElementById('group-form').onsubmit = async (e) => {
 };
 
 // ==========================================
-// 6. จัดการข้อมูล ตัวละคร (Characters) + Drag Drop
+// 6. จัดการข้อมูล ตัวละคร (Characters)
 // ==========================================
 let draggedCharNode = null;
 
@@ -380,7 +437,7 @@ async function fetchCharactersInGroup(groupId) {
         chars.forEach((charItem) => {
             const id = charItem.id;
             const data = charItem.data;
-            const imgUrl = data.coverImage ? data.coverImage : GRAY_PLACEHOLDER;
+            const imgUrl = data.coverImage ? data.coverImage : COVER_PLACEHOLDER;
 
             const card = document.createElement('div');
             card.className = 'char-card';
@@ -407,14 +464,19 @@ async function fetchCharactersInGroup(groupId) {
             card.addEventListener('dragover', (e) => e.preventDefault());
             card.addEventListener('drop', async (e) => {
                 e.preventDefault();
+                
                 if(draggedCharNode && draggedCharNode !== card) {
                     const rect = card.getBoundingClientRect();
                     const midX = rect.left + rect.width / 2;
+                    
                     if (e.clientX < midX) card.parentNode.insertBefore(draggedCharNode, card);
                     else card.parentNode.insertBefore(draggedCharNode, card.nextSibling);
 
-                    const allCards = card.parentNode.querySelectorAll('.char-card');
-                    allCards.forEach((c, i) => updateDoc(doc(db, "characters", c.dataset.id), { order: i }));
+                    const parent = card.parentNode;
+                    const allCards = parent.querySelectorAll('.char-card');
+                    allCards.forEach((c, i) => {
+                        updateDoc(doc(db, "characters", c.dataset.id), { order: i });
+                    });
                 }
             });
 
@@ -456,7 +518,7 @@ async function fetchCharactersInGroup(groupId) {
                 document.getElementById('char-history').value = data.history || '';
                 document.getElementById('char-trivia').value = (data.trivia || []).join('\n');
 
-                charImgInput.value = ""; charImgRemoved = false;
+                charImgInput.value = ""; charImgRemoved = false; croppedCoverBlob = null;
                 if(data.coverImage) { 
                     charFileName.innerText = getFileNameFromUrl(data.coverImage); 
                     charImgClearBtn.style.display = "inline-block"; 
@@ -465,7 +527,7 @@ async function fetchCharactersInGroup(groupId) {
                     charImgClearBtn.style.display = "none"; 
                 }
 
-                charProfileInput.value = ""; charProfileRemoved = false;
+                charProfileInput.value = ""; charProfileRemoved = false; croppedProfileBlob = null;
                 if(data.profileImage) { 
                     charProfileFileName.innerText = getFileNameFromUrl(data.profileImage); 
                     charProfileClearBtn.style.display = "inline-block"; 
@@ -495,20 +557,33 @@ async function fetchCharactersInGroup(groupId) {
                     else { wrap.style.display = "flex"; document.getElementById(textId).innerHTML = value.replace(/\n/g, '<br>'); }
                 };
 
-                const setArrayField = (wrapId, textId, valueArr, bullet = '•') => {
+                const setArrayField = (wrapId, textId, valueArr, bullet = '•', checkLength = false) => {
                     const wrap = document.getElementById(wrapId);
-                    if (!valueArr || valueArr.length === 0 || valueArr.every(i => i.trim() === "")) wrap.style.display = "none";
-                    else {
+                    if (!valueArr || valueArr.length === 0 || valueArr.every(i => i.trim() === "")) {
+                        wrap.style.display = "none";
+                    } else {
                         wrap.style.display = "flex";
-                        document.getElementById(textId).innerHTML = valueArr.map(i => `${bullet} ${i}`).join('<br>');
+                        // เงื่อนไข: ถ้าเป็นชื่ออื่นๆ และมีแค่ชื่อเดียว จะไม่มี bullet point นำหน้า
+                        if (checkLength && valueArr.length === 1) {
+                            document.getElementById(textId).innerHTML = valueArr[0];
+                        } else {
+                            document.getElementById(textId).innerHTML = valueArr.map(i => `${bullet} ${i}`).join('<br>');
+                        }
                     }
                 };
 
                 document.getElementById('view-name-inside').innerText = data.name;
                 const jpNameEl = document.getElementById('view-jp-name-inside');
-                if (data.jpName) { jpNameEl.innerText = data.jpName; jpNameEl.style.display = "block"; } else jpNameEl.style.display = "none";
+                if (data.jpName) { 
+                    jpNameEl.innerText = data.jpName; 
+                    jpNameEl.style.display = "block"; 
+                } else { 
+                    jpNameEl.style.display = "none"; 
+                }
 
-                setArrayField('wrap-view-aliases', 'view-aliases', data.aliases, '•');
+                // ชื่ออื่นๆ (เช็คความยาว ถ้ามี 1 ชื่อไม่ต้องใส่จุด)
+                setArrayField('wrap-view-aliases', 'view-aliases', data.aliases, '•', true);
+                
                 setField('wrap-view-year', 'view-year', data.year);
                 setField('wrap-view-bday', 'view-bday', data.birthday);
                 setField('wrap-view-age', 'view-age', data.age);
@@ -531,19 +606,22 @@ async function fetchCharactersInGroup(groupId) {
                     spellWrap.style.display = "flex";
                     let h = "";
                     if (data.spellName) h += `<strong>${data.spellName}</strong><br>`;
-                    if (data.spellDesc) h += `<span>${data.spellDesc.replace(/\n/g, '<br>')}</span>`;
+                    if (data.spellDesc) h += `<span class="info-value">${data.spellDesc.replace(/\n/g, '<br>')}</span>`;
                     document.getElementById('view-spell-content').innerHTML = h;
                 }
 
                 setField('wrap-view-personality', 'view-personality', data.personality);
-                if (!data.relationships || data.relationships.length === 0) document.getElementById('wrap-view-relationships').style.display = "none";
+                
+                // ความสัมพันธ์และเกร็ดความรู้ ใส่จุดเสมอแม้จะมีบรรทัดเดียว
+                if (!data.relationships || data.relationships.length === 0 || data.relationships.every(i => i.trim() === "")) document.getElementById('wrap-view-relationships').style.display = "none";
                 else {
                     document.getElementById('wrap-view-relationships').style.display = "block";
                     document.getElementById('view-relationships').innerHTML = data.relationships.map(i => `• ${i}`).join('<br>');
                 }
+                
                 setField('wrap-view-history', 'view-history', data.history);
                 
-                if (!data.trivia || data.trivia.length === 0) document.getElementById('wrap-view-trivia').style.display = "none";
+                if (!data.trivia || data.trivia.length === 0 || data.trivia.every(i => i.trim() === "")) document.getElementById('wrap-view-trivia').style.display = "none";
                 else {
                     document.getElementById('wrap-view-trivia').style.display = "block";
                     document.getElementById('view-trivia').innerHTML = data.trivia.map(i => `◆ ${i}`).join('<br>');
@@ -594,15 +672,15 @@ document.getElementById('character-form').onsubmit = async (e) => {
         timestamp: new Date()
     };
 
-    if (charImgInput.files.length > 0) {
-        const coverUrl = await uploadImageToCloudinary(charImgInput.files[0]);
+    if (croppedCoverBlob) {
+        const coverUrl = await uploadImageToCloudinary(croppedCoverBlob);
         if(coverUrl) charData.coverImage = coverUrl;
     } else if (charImgRemoved) {
         charData.coverImage = deleteField();
     }
     
-    if (charProfileInput.files.length > 0) {
-        const profileUrl = await uploadImageToCloudinary(charProfileInput.files[0]);
+    if (croppedProfileBlob) {
+        const profileUrl = await uploadImageToCloudinary(croppedProfileBlob);
         if(profileUrl) charData.profileImage = profileUrl;
     } else if (charProfileRemoved) {
         charData.profileImage = deleteField();
