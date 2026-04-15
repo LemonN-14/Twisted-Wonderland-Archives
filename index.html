@@ -6,6 +6,7 @@
     <title>Twisted Wonderland Archives</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 </head>
 <body>
 
@@ -110,7 +111,7 @@
                 </div>
                 <h2 id="inside-group-title">Group Name</h2>
                 <div class="group-actions-right">
-                    <button id="add-char-btn" class="btn-primary" style="padding: 8px 15px; font-size: 0.9rem;"><i class="fas fa-plus"></i> เพิ่มตัวละคร</button>
+                    <button id="add-char-btn" class="btn-primary"><i class="fas fa-plus"></i> <span class="btn-text-hide">เพิ่มตัวละคร</span></button>
                 </div>
             </div>
             <div id="character-grid" class="grid-container"></div>
@@ -133,7 +134,7 @@
                 <div id="tab-personal" class="form-tab active">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label>รูปปกการ์ด (Cover Image)</label>
+                            <label>รูปปกการ์ด (สัดส่วน 3:4)</label>
                             <div class="custom-file-input">
                                 <label for="char-image" class="file-btn">เลือกไฟล์</label>
                                 <span id="char-file-name" class="file-name">ไม่ได้เลือกไฟล์</span>
@@ -142,7 +143,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>รูปโปรไฟล์ (Profile Image)</label>
+                            <label>รูปโปรไฟล์ (สัดส่วน 1:1)</label>
                             <div class="custom-file-input">
                                 <label for="char-profile-image" class="file-btn">เลือกไฟล์</label>
                                 <span id="char-profile-file-name" class="file-name">ไม่ได้เลือกไฟล์</span>
@@ -198,64 +199,78 @@
                 <h2 id="view-name-top">Name</h2>
             </div>
 
-            <div class="view-main-layout">
-                <!-- รูปโปรไฟล์ซ้ายมือ -->
-                <div class="view-left">
-                    <img id="view-img" src="" alt="Profile">
-                </div>
-                
-                <div class="view-right">
-                    <ul class="view-tabs modal-tabs">
-                        <li class="active" data-target="vtab-personal">ข้อมูลส่วนตัว</li>
-                        <li data-target="vtab-background">ประวัติ</li>
-                        <li data-target="vtab-trivia">เกร็ดความรู้</li>
-                    </ul>
+            <ul class="view-tabs modal-tabs">
+                <li class="active" data-target="vtab-personal">ข้อมูลส่วนตัว</li>
+                <li data-target="vtab-background">ประวัติ</li>
+                <li data-target="vtab-trivia">เกร็ดความรู้</li>
+            </ul>
 
-                    <div class="view-body">
-                        <div id="vtab-personal" class="v-tab active">
-                            <div class="info-list">
-                                <div class="info-item" id="wrap-view-name">
-                                    <span class="label-title">ชื่อ:</span> 
-                                    <div class="info-value">
-                                        <div id="view-name-inside"></div>
-                                        <div id="view-jp-name-inside" style="color:var(--text-secondary); margin-top:4px;"></div>
-                                    </div>
+            <div class="view-body">
+                <div id="vtab-personal" class="v-tab active">
+                    <div class="personal-layout">
+                        <div class="view-left">
+                            <img id="view-img" src="" alt="Profile">
+                        </div>
+                        
+                        <div class="info-list">
+                            <div class="info-item" id="wrap-view-name">
+                                <span class="label-title">ชื่อ:</span> 
+                                <div class="info-value">
+                                    <div id="view-name-inside"></div>
+                                    <div id="view-jp-name-inside" style="color:var(--text-primary); margin-top:4px; font-size:1rem;"></div>
                                 </div>
-                                <div class="info-item" id="wrap-view-aliases"><span class="label-title">ชื่ออื่นๆ:</span><span class="info-value" id="view-aliases"></span></div>
-                                <div class="info-item" id="wrap-view-year"><span class="label-title">ชั้นปี:</span> <span class="info-value" id="view-year"></span></div>
-                                <div class="info-item" id="wrap-view-bday"><span class="label-title">วันเกิด:</span> <span class="info-value" id="view-bday"></span></div>
-                                <div class="info-item" id="wrap-view-age"><span class="label-title">อายุ:</span> <span class="info-value" id="view-age"></span></div>
-                                <div class="info-item" id="wrap-view-height"><span class="label-title">ส่วนสูง:</span> <span class="info-value" id="view-height"></span></div>
-                                <div class="info-item" id="wrap-view-hand"><span class="label-title">มือข้างที่ถนัด:</span> <span class="info-value" id="view-hand"></span></div>
-                                <div class="info-item" id="wrap-view-homeland"><span class="label-title">บ้านเกิด:</span> <span class="info-value" id="view-homeland"></span></div>
-                                <div class="info-item" id="wrap-view-city"><span class="label-title">เมือง:</span> <span class="info-value" id="view-city"></span></div>
-                                <div class="info-item" id="wrap-view-club"><span class="label-title">ชมรม:</span> <span class="info-value" id="view-club"></span></div>
-                                <div class="info-item" id="wrap-view-subject"><span class="label-title">วิชาที่ถนัด:</span> <span class="info-value" id="view-subject"></span></div>
-                                <div class="info-item" id="wrap-view-hobby"><span class="label-title">งานอดิเรก:</span> <span class="info-value" id="view-hobby"></span></div>
-                                <div class="info-item" id="wrap-view-dislikes"><span class="label-title">สิ่งที่เกลียด:</span> <span class="info-value" id="view-dislikes"></span></div>
-                                <div class="info-item" id="wrap-view-fav-food"><span class="label-title">อาหารที่ชอบ:</span> <span class="info-value" id="view-fav-food"></span></div>
-                                <div class="info-item" id="wrap-view-dislike-food"><span class="label-title">อาหารที่ไม่ชอบ:</span> <span class="info-value" id="view-dislike-food"></span></div>
-                                <div class="info-item" id="wrap-view-talent"><span class="label-title">ความสามารถพิเศษ:</span> <span class="info-value" id="view-talent"></span></div>
-                                <div class="info-item" id="wrap-view-va"><span class="label-title">ชื่อนักพากย์:</span> <span class="info-value" id="view-va"></span></div>
-                                <div class="info-item" id="wrap-view-spell"><span class="label-title">เวทย์ประจำตัว:</span><span class="info-value" id="view-spell-content"></span></div>
                             </div>
-                        </div>
-                        <div id="vtab-background" class="v-tab">
-                            <div class="info-block" id="wrap-view-personality"><span class="label-title block-title">อุปนิสัย:</span><p class="info-value" id="view-personality"></p></div>
-                            <div class="info-block" id="wrap-view-relationships"><span class="label-title block-title">ความสัมพันธ์:</span><p class="info-value" id="view-relationships"></p></div>
-                            <div class="info-block" id="wrap-view-history"><span class="label-title block-title">ประวัติ/เนื้อเรื่อง:</span><p class="info-value" id="view-history"></p></div>
-                        </div>
-                        <div id="vtab-trivia" class="v-tab">
-                            <div class="info-block" id="wrap-view-trivia"><span class="label-title block-title">เกร็ดความรู้:</span><p class="info-value" id="view-trivia"></p></div>
+                            <div class="info-item" id="wrap-view-aliases"><span class="label-title">ชื่ออื่นๆ:</span><span class="info-value" id="view-aliases"></span></div>
+                            <div class="info-item" id="wrap-view-year"><span class="label-title">ชั้นปี:</span> <span class="info-value" id="view-year"></span></div>
+                            <div class="info-item" id="wrap-view-bday"><span class="label-title">วันเกิด:</span> <span class="info-value" id="view-bday"></span></div>
+                            <div class="info-item" id="wrap-view-age"><span class="label-title">อายุ:</span> <span class="info-value" id="view-age"></span></div>
+                            <div class="info-item" id="wrap-view-height"><span class="label-title">ส่วนสูง:</span> <span class="info-value" id="view-height"></span></div>
+                            <div class="info-item" id="wrap-view-hand"><span class="label-title">มือข้างที่ถนัด:</span> <span class="info-value" id="view-hand"></span></div>
+                            <div class="info-item" id="wrap-view-homeland"><span class="label-title">บ้านเกิด:</span> <span class="info-value" id="view-homeland"></span></div>
+                            <div class="info-item" id="wrap-view-city"><span class="label-title">เมือง:</span> <span class="info-value" id="view-city"></span></div>
+                            <div class="info-item" id="wrap-view-club"><span class="label-title">ชมรม:</span> <span class="info-value" id="view-club"></span></div>
+                            <div class="info-item" id="wrap-view-subject"><span class="label-title">วิชาที่ถนัด:</span> <span class="info-value" id="view-subject"></span></div>
+                            <div class="info-item" id="wrap-view-hobby"><span class="label-title">งานอดิเรก:</span> <span class="info-value" id="view-hobby"></span></div>
+                            <div class="info-item" id="wrap-view-dislikes"><span class="label-title">สิ่งที่เกลียด:</span> <span class="info-value" id="view-dislikes"></span></div>
+                            <div class="info-item" id="wrap-view-fav-food"><span class="label-title">อาหารที่ชอบ:</span> <span class="info-value" id="view-fav-food"></span></div>
+                            <div class="info-item" id="wrap-view-dislike-food"><span class="label-title">อาหารที่ไม่ชอบ:</span> <span class="info-value" id="view-dislike-food"></span></div>
+                            <div class="info-item" id="wrap-view-talent"><span class="label-title">ความสามารถพิเศษ:</span> <span class="info-value" id="view-talent"></span></div>
+                            <div class="info-item" id="wrap-view-va"><span class="label-title">ชื่อนักพากย์:</span> <span class="info-value" id="view-va"></span></div>
+                            <div class="info-item" id="wrap-view-spell"><span class="label-title">เวทย์ประจำตัว:</span><span class="info-value" id="view-spell-content"></span></div>
                         </div>
                     </div>
                 </div>
+
+                <div id="vtab-background" class="v-tab">
+                    <div class="info-block" id="wrap-view-personality"><span class="label-title block-title">อุปนิสัย:</span><p class="info-value" id="view-personality"></p></div>
+                    <div class="info-block" id="wrap-view-relationships"><span class="label-title block-title">ความสัมพันธ์:</span><p class="info-value" id="view-relationships"></p></div>
+                    <div class="info-block" id="wrap-view-history"><span class="label-title block-title">ประวัติ/เนื้อเรื่อง:</span><p class="info-value" id="view-history"></p></div>
+                </div>
+
+                <div id="vtab-trivia" class="v-tab">
+                    <div class="info-block" id="wrap-view-trivia"><span class="label-title block-title">เกร็ดความรู้:</span><p class="info-value" id="view-trivia"></p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Crop Image Modal -->
+    <div id="crop-modal" class="modal" style="z-index: 2000;">
+        <div class="modal-content" style="max-width: 600px; text-align: center;">
+            <h2>ปรับขนาดและครอบตัดรูปภาพ</h2>
+            <div style="max-height: 400px; overflow: hidden; margin-bottom: 20px;">
+                <img id="crop-image-target" src="" style="max-width: 100%;">
+            </div>
+            <div class="form-actions">
+                <button type="button" id="cancel-crop-btn" class="btn-tool" style="margin-right: 15px; padding: 10px 20px;">ยกเลิก</button>
+                <button type="button" id="confirm-crop-btn" class="btn-primary">ยืนยันการตัด</button>
             </div>
         </div>
     </div>
 
     <div id="toast" class="toast">บันทึกข้อมูลสำเร็จ</div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script type="module" src="app.js"></script>
 </body>
 </html>
