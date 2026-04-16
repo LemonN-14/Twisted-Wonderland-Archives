@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twisted Wonderland Archives</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+</head>
+<body>
+
+    <header>
+        <h1>Twisted Wonderland Archives</h1>
+    </header>
+
+    <nav class="main-nav">
+        <div class="nav-spacer"></div>
+        <ul class="main-tabs">
+            <li class="active" data-target="characters-view">Characters</li>
+            <li data-target="story-view">Story</li>
+            <li data-target="gameplay-view">Gameplay</li> 
+            <li data-target="world-view">World</li>
+        </ul>
+        <div class="nav-actions">
+            <button id="add-btn" title="Add Group/Dorm"><i class="fas fa-plus"></i></button>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Characters View -->
+        <section id="characters-view" class="view-section active">
+            <ul class="sub-tabs">
+                <li class="active" data-target="nrc-grid">Night Raven College</li>
+                <li data-target="rsa-grid">Royal Sword Academy</li>
+            </ul>
+
+            <div id="nrc-grid" class="sub-view active group-grid-container"></div>
+            <div id="rsa-grid" class="sub-view group-grid-container"></div>
+        </section>
+
+        <!-- Story View -->
+        <section id="story-view" class="view-section">
+            <ul class="sub-tabs story-tabs">
+                <li class="active" data-target="main-story-view">Main Story</li>
+                <li data-target="events-story-view">Events</li>
+            </ul>
+            <div id="main-story-view" class="sub-view active">
+                <h2 style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">Main Story Data (Coming Soon)</h2>
+            </div>
+            <div id="events-story-view" class="sub-view">
+                <h2 style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">Events Data (Coming Soon)</h2>
+            </div>
+        </section>
+        
+        <!-- Gameplay View -->
+        <section id="gameplay-view" class="view-section">
+            <h2 style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">Gameplay Data (Coming Soon)</h2>
+        </section>
+        
+        <!-- World View -->
+        <section id="world-view" class="view-section">
+            <div class="world-container">
+                <div id="world-toolbar" class="editor-toolbar" style="display: none;">
+                    <button type="button" onclick="document.execCommand('bold', false, null)" title="ตัวหนา"><i class="fas fa-bold"></i></button>
+                    <button type="button" onclick="document.execCommand('italic', false, null)" title="ตัวเอียง"><i class="fas fa-italic"></i></button>
+                    <button type="button" onclick="document.execCommand('underline', false, null)" title="ขีดเส้นใต้"><i class="fas fa-underline"></i></button>
+                    <button type="button" onclick="document.execCommand('strikeThrough', false, null)" title="ขีดเส้นทับ"><i class="fas fa-strikethrough"></i></button>
+                    <span class="divider"></span>
+                    <button type="button" onclick="document.execCommand('justifyLeft', false, null)" title="จัดซ้าย"><i class="fas fa-align-left"></i></button>
+                    <button type="button" onclick="document.execCommand('justifyCenter', false, null)" title="จัดกลาง"><i class="fas fa-align-center"></i></button>
+                    <button type="button" onclick="document.execCommand('justifyRight', false, null)" title="จัดขวา"><i class="fas fa-align-right"></i></button>
+                    <span class="divider"></span>
+                    <button type="button" onclick="document.execCommand('insertHorizontalRule', false, null)" title="เส้นคั่น"><i class="fas fa-minus"></i></button>
+                    <button type="button" id="btn-world-toggle" title="แทรกหัวข้อเปิด/ปิด"><i class="fas fa-list"></i></button>
+                    <button type="button" id="btn-world-image" title="เพิ่มรูปภาพ"><i class="fas fa-image"></i></button>
+                    <input type="file" id="world-image-input" accept="image/*" style="display:none;">
+                    <button type="button" id="save-world-btn" class="btn-save-world">บันทึกเนื้อหา</button>
+                    <span id="world-loading" style="display:none; color:var(--accent-color); margin-left: 10px;">กำลังอัปโหลด...</span>
+                </div>
+                <div id="world-editor" class="world-editor" title="ดับเบิ้ลคลิกเพื่อแก้ไข">
+                    <p style="color: var(--text-secondary);">กำลังโหลดข้อมูล World... (ดับเบิ้ลคลิกเพื่อแก้ไข)</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 1. Add/Edit Group Modal -->
+    <div id="group-modal" class="modal" style="z-index: 1010;">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-btn" id="close-group-modal">&times;</span>
+            <h2 id="group-modal-title">สร้างไอคอนใหม่</h2>
+            <form id="group-form">
+                <div class="form-group">
+                    <label>สังกัด (Category)</label>
+                    <select id="group-category">
+                        <option value="NRC">Night Raven College</option>
+                        <option value="RSA">Royal Sword Academy</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>รูปไอคอน (พื้นหลังใสได้)</label>
+                    <div class="custom-file-input">
+                        <label for="group-image" class="file-btn">เลือกไฟล์</label>
+                        <span id="group-file-name" class="file-name">ไม่ได้เลือกไฟล์</span>
+                        <input type="file" id="group-image" accept="image/*" style="display: none;">
+                        <button type="button" id="clear-group-img-btn" class="btn-tool clear-btn" style="display: none;" title="เอารูปออก"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>ชื่อกลุ่ม/หอ (Group Name)</label>
+                    <input type="text" id="group-name" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="submit-group-btn" class="btn-primary">บันทึกกลุ่ม</button>
+                    <span id="group-loading-text" style="display:none; color: #b39ddb; margin-left:10px;">กำลังอัปโหลด...</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Inside Group Modal -->
+    <div id="inside-group-modal" class="modal" style="z-index: 1000;">
+        <div class="modal-content" style="width: 90%; max-width: 1200px; min-height: 80vh;">
+            <span class="close-btn group-close-btn" id="close-inside-group-btn">&times;</span> 
+            <div class="group-header">
+                <div class="group-actions-left">
+                    <button id="edit-group-btn" class="btn-tool" title="แก้ไขกลุ่ม"><i class="fas fa-edit"></i></button>
+                    <button id="delete-group-btn" class="btn-tool" title="ลบกลุ่ม"><i class="fas fa-trash"></i></button>
+                </div>
+                <h2 id="inside-group-title">Group Name</h2>
+                <div class="group-actions-right">
+                    <button id="add-char-btn" class="btn-primary" style="padding: 8px 15px; font-size: 0.9rem;"><i class="fas fa-plus"></i> เพิ่มตัวละคร</button>
+                </div>
+            </div>
+            <div id="character-grid" class="grid-container"></div>
+        </div>
+    </div>
+
+    <!-- 3. Add/Edit Character Form Modal -->
+    <div id="character-modal" class="modal" style="z-index: 1020;">
+        <div class="modal-content">
+            <span class="close-btn" id="close-form-btn">&times;</span>
+            <h2 id="form-modal-title">เพิ่มข้อมูลตัวละคร</h2>
+            
+            <ul class="modal-tabs">
+                <li class="active" data-target="tab-personal">ข้อมูลส่วนตัว</li>
+                <li data-target="tab-background">ประวัติ</li>
+                <li data-target="tab-trivia">เกร็ดความรู้</li>
+            </ul>
+
+            <form id="character-form">
+                <!-- Tab 1 -->
+                <div id="tab-personal" class="form-tab active">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>รูปปกการ์ด (สัดส่วน 3:4)</label>
+                            <div class="custom-file-input">
+                                <label for="char-image" class="file-btn">เลือกไฟล์</label>
+                                <span id="char-file-name" class="file-name">ไม่ได้เลือกไฟล์</span>
+                                <input type="file" id="char-image" accept="image/*" style="display: none;">
+                                <button type="button" id="clear-char-img-btn" class="btn-tool clear-btn" style="display: none;"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>รูปโปรไฟล์ (สัดส่วน 1:1)</label>
+                            <div class="custom-file-input">
+                                <label for="char-profile-image" class="file-btn">เลือกไฟล์</label>
+                                <span id="char-profile-file-name" class="file-name">ไม่ได้เลือกไฟล์</span>
+                                <input type="file" id="char-profile-image" accept="image/*" style="display: none;">
+                                <button type="button" id="clear-char-profile-btn" class="btn-tool clear-btn" style="display: none;"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group"><label>ชื่อ (Name)</label><input type="text" id="char-name" required></div>
+                        <div class="form-group"><label>ชื่อญี่ปุ่น (JP Name)</label><input type="text" id="char-jp-name"></div>
+                        <div class="form-group full-width"><label>ชื่ออื่นๆ (Aliases)</label><textarea id="char-aliases" rows="3"></textarea></div>
+                        <div class="form-group"><label>ชั้นปี</label><input type="text" id="char-year"></div>
+                        <div class="form-group"><label>วันเกิด</label><input type="text" id="char-bday"></div>
+                        <div class="form-group"><label>อายุ</label><input type="text" id="char-age"></div>
+                        <div class="form-group"><label>ส่วนสูง (cm)</label><input type="text" id="char-height"></div>
+                        <div class="form-group"><label>มือข้างที่ถนัด</label><input type="text" id="char-hand"></div>
+                        <div class="form-group"><label>บ้านเกิด</label><input type="text" id="char-homeland"></div>
+                        <div class="form-group"><label>เมือง</label><input type="text" id="char-city"></div>
+                        <div class="form-group"><label>ชมรม</label><input type="text" id="char-club"></div>
+                        <div class="form-group"><label>วิชาที่ถนัด</label><input type="text" id="char-subject"></div>
+                        <div class="form-group"><label>งานอดิเรก</label><input type="text" id="char-hobby"></div>
+                        <div class="form-group"><label>สิ่งที่เกลียด</label><input type="text" id="char-dislikes"></div>
+                        <div class="form-group"><label>อาหารที่ชอบ</label><input type="text" id="char-fav-food"></div>
+                        <div class="form-group"><label>อาหารที่ไม่ชอบ</label><input type="text" id="char-dislike-food"></div>
+                        <div class="form-group"><label>ความสามารถพิเศษ</label><input type="text" id="char-talent"></div>
+                        <div class="form-group"><label>ชื่อนักพากย์</label><input type="text" id="char-va"></div>
+                        <div class="form-group full-width"><label>ชื่อเวทย์ประจำตัว</label><input type="text" id="char-spell-name"></div>
+                        <div class="form-group full-width"><label>คำอธิบายเวทย์</label><textarea id="char-spell-desc" rows="2"></textarea></div>
+                    </div>
+                </div>
+                <!-- Tab 2 (เพิ่มสรรพนาม) -->
+                <div id="tab-background" class="form-tab">
+                    <div class="form-group"><label>สรรพนาม (Pronouns)</label><textarea id="char-pronouns" rows="3"></textarea></div>
+                    <div class="form-group"><label>อุปนิสัย (Personality)</label><textarea id="char-personality" rows="5"></textarea></div>
+                    <div class="form-group"><label>ความสัมพันธ์ (Relationships)</label><textarea id="char-relationships" rows="5"></textarea></div>
+                    <div class="form-group"><label>ประวัติ/เนื้อเรื่อง (History/Story)</label><textarea id="char-history" rows="8"></textarea></div>
+                </div>
+                <!-- Tab 3 -->
+                <div id="tab-trivia" class="form-tab">
+                    <div class="form-group"><label>เกร็ดความรู้ (Trivia)</label><textarea id="char-trivia" rows="10"></textarea></div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="submit-btn" class="btn-primary">บันทึกข้อมูล</button>
+                    <span id="loading-text" style="display:none; color: #b39ddb; margin-left:10px;">กำลังประมวลผล...</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. View Character Modal -->
+    <div id="view-modal" class="modal" style="z-index: 1030;">
+        <div class="modal-content view-content">
+            <span class="close-btn" id="close-view-btn">&times;</span>
+            
+            <div class="view-header">
+                <h2 id="view-name-top">Name</h2>
+            </div>
+
+            <ul class="view-tabs modal-tabs">
+                <li class="active" data-target="vtab-personal">ข้อมูลส่วนตัว</li>
+                <li data-target="vtab-background">ประวัติ</li>
+                <li data-target="vtab-trivia">เกร็ดความรู้</li>
+            </ul>
+
+            <div class="view-body">
+                <div id="vtab-personal" class="v-tab active">
+                    <div class="personal-layout">
+                        <div class="view-left">
+                            <img id="view-img" src="" alt="Profile">
+                        </div>
+                        
+                        <div class="info-list">
+                            <div class="info-item" id="wrap-view-name">
+                                <span class="label-title">ชื่อ:</span> 
+                                <div class="info-value">
+                                    <div id="view-name-inside"></div>
+                                    <div id="view-jp-name-inside" style="color:var(--text-primary); margin-top:4px; font-size:1rem; text-align: center;"></div>
+                                </div>
+                            </div>
+                            <div class="info-item" id="wrap-view-aliases"><span class="label-title">ชื่ออื่นๆ:</span><span class="info-value" id="view-aliases"></span></div>
+                            <div class="info-item" id="wrap-view-year"><span class="label-title">ชั้นปี:</span> <span class="info-value" id="view-year"></span></div>
+                            <div class="info-item" id="wrap-view-bday"><span class="label-title">วันเกิด:</span> <span class="info-value" id="view-bday"></span></div>
+                            <div class="info-item" id="wrap-view-age"><span class="label-title">อายุ:</span> <span class="info-value" id="view-age"></span></div>
+                            <div class="info-item" id="wrap-view-height"><span class="label-title">ส่วนสูง:</span> <span class="info-value" id="view-height"></span></div>
+                            <div class="info-item" id="wrap-view-hand"><span class="label-title">มือข้างที่ถนัด:</span> <span class="info-value" id="view-hand"></span></div>
+                            <div class="info-item" id="wrap-view-homeland"><span class="label-title">บ้านเกิด:</span> <span class="info-value" id="view-homeland"></span></div>
+                            <div class="info-item" id="wrap-view-city"><span class="label-title">เมือง:</span> <span class="info-value" id="view-city"></span></div>
+                            <div class="info-item" id="wrap-view-club"><span class="label-title">ชมรม:</span> <span class="info-value" id="view-club"></span></div>
+                            <div class="info-item" id="wrap-view-subject"><span class="label-title">วิชาที่ถนัด:</span> <span class="info-value" id="view-subject"></span></div>
+                            <div class="info-item" id="wrap-view-hobby"><span class="label-title">งานอดิเรก:</span> <span class="info-value" id="view-hobby"></span></div>
+                            <div class="info-item" id="wrap-view-dislikes"><span class="label-title">สิ่งที่เกลียด:</span> <span class="info-value" id="view-dislikes"></span></div>
+                            <div class="info-item" id="wrap-view-fav-food"><span class="label-title">อาหารที่ชอบ:</span> <span class="info-value" id="view-fav-food"></span></div>
+                            <div class="info-item" id="wrap-view-dislike-food"><span class="label-title">อาหารที่ไม่ชอบ:</span> <span class="info-value" id="view-dislike-food"></span></div>
+                            <div class="info-item" id="wrap-view-talent"><span class="label-title">ความสามารถพิเศษ:</span> <span class="info-value" id="view-talent"></span></div>
+                            <div class="info-item" id="wrap-view-va"><span class="label-title">ชื่อนักพากย์:</span> <span class="info-value" id="view-va"></span></div>
+                            <div class="info-item" id="wrap-view-spell"><span class="label-title">เวทย์ประจำตัว:</span><span class="info-value" id="view-spell-content"></span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ประวัติ (เพิ่มสรรพนาม จัดซ้าย คำตอบลงมา) -->
+                <div id="vtab-background" class="v-tab">
+                    <div class="info-block" id="wrap-view-pronouns">
+                        <span class="label-title block-title">สรรพนาม:</span>
+                        <div class="info-value" id="view-pronouns"></div>
+                    </div>
+                    <div class="info-block" id="wrap-view-personality">
+                        <span class="label-title block-title">อุปนิสัย:</span>
+                        <div class="info-value" id="view-personality"></div>
+                    </div>
+                    <div class="info-block" id="wrap-view-relationships">
+                        <span class="label-title block-title">ความสัมพันธ์:</span>
+                        <div class="info-value" id="view-relationships"></div>
+                    </div>
+                    <div class="info-block" id="wrap-view-history">
+                        <span class="label-title block-title">ประวัติ/เนื้อเรื่อง:</span>
+                        <div class="info-value" id="view-history"></div>
+                    </div>
+                </div>
+
+                <!-- เกร็ดความรู้ -->
+                <div id="vtab-trivia" class="v-tab">
+                    <div class="info-block" id="wrap-view-trivia">
+                        <span class="label-title block-title">เกร็ดความรู้:</span>
+                        <div class="info-value" id="view-trivia"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Crop Image Modal -->
+    <div id="crop-modal" class="modal" style="z-index: 2000;">
+        <div class="modal-content" style="max-width: 600px; text-align: center;">
+            <h2>ปรับขนาดและครอบตัดรูปภาพ</h2>
+            <div style="max-height: 400px; overflow: hidden; margin-bottom: 20px;">
+                <img id="crop-image-target" src="" style="max-width: 100%;">
+            </div>
+            <div class="form-actions">
+                <button type="button" id="cancel-crop-btn" class="btn-tool" style="margin-right: 15px; padding: 10px 20px;">ยกเลิก</button>
+                <button type="button" id="confirm-crop-btn" class="btn-primary">ยืนยันการตัด</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">บันทึกข้อมูลสำเร็จ</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
