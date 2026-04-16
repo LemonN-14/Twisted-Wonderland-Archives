@@ -19,7 +19,7 @@
         <ul class="main-tabs">
             <li class="active" data-target="characters-view">Characters</li>
             <li data-target="story-view">Story</li>
-            <li data-target="event-view">Event</li>
+            <li data-target="gameplay-view">Gameplay</li> 
             <li data-target="world-view">World</li>
         </ul>
         <div class="nav-actions">
@@ -28,6 +28,7 @@
     </nav>
 
     <main>
+        <!-- Characters View -->
         <section id="characters-view" class="view-section active">
             <ul class="sub-tabs">
                 <li class="active" data-target="nrc-grid">Night Raven College</li>
@@ -38,9 +39,26 @@
             <div id="rsa-grid" class="sub-view group-grid-container"></div>
         </section>
 
-        <section id="story-view" class="view-section"><h2>Story Data (Coming Soon)</h2></section>
-        <section id="event-view" class="view-section"><h2>Event Data (Coming Soon)</h2></section>
+        <!-- Story View -->
+        <section id="story-view" class="view-section">
+            <ul class="sub-tabs story-tabs">
+                <li class="active" data-target="main-story-view">Main Story</li>
+                <li data-target="events-story-view">Events</li>
+            </ul>
+            <div id="main-story-view" class="sub-view active">
+                <h2 style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">Main Story Data (Coming Soon)</h2>
+            </div>
+            <div id="events-story-view" class="sub-view">
+                <h2 style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">Events Data (Coming Soon)</h2>
+            </div>
+        </section>
         
+        <!-- Gameplay View -->
+        <section id="gameplay-view" class="view-section">
+            <h2 style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">Gameplay Data (Coming Soon)</h2>
+        </section>
+        
+        <!-- World View -->
         <section id="world-view" class="view-section">
             <div class="world-container">
                 <div id="world-toolbar" class="editor-toolbar" style="display: none;">
@@ -104,6 +122,7 @@
     <!-- 2. Inside Group Modal -->
     <div id="inside-group-modal" class="modal" style="z-index: 1000;">
         <div class="modal-content" style="width: 90%; max-width: 1200px; min-height: 80vh;">
+            <span class="close-btn group-close-btn" id="close-inside-group-btn">&times;</span> 
             <div class="group-header">
                 <div class="group-actions-left">
                     <button id="edit-group-btn" class="btn-tool" title="แก้ไขกลุ่ม"><i class="fas fa-edit"></i></button>
@@ -111,7 +130,7 @@
                 </div>
                 <h2 id="inside-group-title">Group Name</h2>
                 <div class="group-actions-right">
-                    <button id="add-char-btn" class="btn-primary"><i class="fas fa-plus"></i> <span class="btn-text-hide">เพิ่มตัวละคร</span></button>
+                    <button id="add-char-btn" class="btn-primary" style="padding: 8px 15px; font-size: 0.9rem;"><i class="fas fa-plus"></i> เพิ่มตัวละคร</button>
                 </div>
             </div>
             <div id="character-grid" class="grid-container"></div>
@@ -131,6 +150,7 @@
             </ul>
 
             <form id="character-form">
+                <!-- Tab 1 -->
                 <div id="tab-personal" class="form-tab active">
                     <div class="form-grid">
                         <div class="form-group">
@@ -174,11 +194,14 @@
                         <div class="form-group full-width"><label>คำอธิบายเวทย์</label><textarea id="char-spell-desc" rows="2"></textarea></div>
                     </div>
                 </div>
+                <!-- Tab 2 (เพิ่มสรรพนาม) -->
                 <div id="tab-background" class="form-tab">
+                    <div class="form-group"><label>สรรพนาม (Pronouns)</label><textarea id="char-pronouns" rows="3"></textarea></div>
                     <div class="form-group"><label>อุปนิสัย (Personality)</label><textarea id="char-personality" rows="5"></textarea></div>
                     <div class="form-group"><label>ความสัมพันธ์ (Relationships)</label><textarea id="char-relationships" rows="5"></textarea></div>
                     <div class="form-group"><label>ประวัติ/เนื้อเรื่อง (History/Story)</label><textarea id="char-history" rows="8"></textarea></div>
                 </div>
+                <!-- Tab 3 -->
                 <div id="tab-trivia" class="form-tab">
                     <div class="form-group"><label>เกร็ดความรู้ (Trivia)</label><textarea id="char-trivia" rows="10"></textarea></div>
                 </div>
@@ -217,7 +240,7 @@
                                 <span class="label-title">ชื่อ:</span> 
                                 <div class="info-value">
                                     <div id="view-name-inside"></div>
-                                    <div id="view-jp-name-inside" style="color:var(--text-primary); margin-top:4px; font-size:1rem;"></div>
+                                    <div id="view-jp-name-inside" style="color:var(--text-primary); margin-top:4px; font-size:1rem; text-align: center;"></div>
                                 </div>
                             </div>
                             <div class="info-item" id="wrap-view-aliases"><span class="label-title">ชื่ออื่นๆ:</span><span class="info-value" id="view-aliases"></span></div>
@@ -240,15 +263,33 @@
                         </div>
                     </div>
                 </div>
-
+                
+                <!-- ประวัติ (เพิ่มสรรพนาม จัดซ้าย คำตอบลงมา) -->
                 <div id="vtab-background" class="v-tab">
-                    <div class="info-block" id="wrap-view-personality"><span class="label-title block-title">อุปนิสัย:</span><p class="info-value" id="view-personality"></p></div>
-                    <div class="info-block" id="wrap-view-relationships"><span class="label-title block-title">ความสัมพันธ์:</span><p class="info-value" id="view-relationships"></p></div>
-                    <div class="info-block" id="wrap-view-history"><span class="label-title block-title">ประวัติ/เนื้อเรื่อง:</span><p class="info-value" id="view-history"></p></div>
+                    <div class="info-block" id="wrap-view-pronouns">
+                        <span class="label-title block-title">สรรพนาม:</span>
+                        <div class="info-value" id="view-pronouns"></div>
+                    </div>
+                    <div class="info-block" id="wrap-view-personality">
+                        <span class="label-title block-title">อุปนิสัย:</span>
+                        <div class="info-value" id="view-personality"></div>
+                    </div>
+                    <div class="info-block" id="wrap-view-relationships">
+                        <span class="label-title block-title">ความสัมพันธ์:</span>
+                        <div class="info-value" id="view-relationships"></div>
+                    </div>
+                    <div class="info-block" id="wrap-view-history">
+                        <span class="label-title block-title">ประวัติ/เนื้อเรื่อง:</span>
+                        <div class="info-value" id="view-history"></div>
+                    </div>
                 </div>
 
+                <!-- เกร็ดความรู้ -->
                 <div id="vtab-trivia" class="v-tab">
-                    <div class="info-block" id="wrap-view-trivia"><span class="label-title block-title">เกร็ดความรู้:</span><p class="info-value" id="view-trivia"></p></div>
+                    <div class="info-block" id="wrap-view-trivia">
+                        <span class="label-title block-title">เกร็ดความรู้:</span>
+                        <div class="info-value" id="view-trivia"></div>
+                    </div>
                 </div>
             </div>
         </div>

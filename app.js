@@ -86,8 +86,9 @@ document.querySelectorAll('.main-tabs li').forEach(tab => {
 
 document.querySelectorAll('.sub-tabs li').forEach(tab => {
     tab.addEventListener('click', () => {
-        document.querySelectorAll('.sub-tabs li').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.sub-view').forEach(v => v.classList.remove('active'));
+        const parentSection = tab.closest('.view-section');
+        parentSection.querySelectorAll('.sub-tabs li').forEach(t => t.classList.remove('active'));
+        parentSection.querySelectorAll('.sub-view').forEach(v => v.classList.remove('active'));
         tab.classList.add('active');
         document.getElementById(tab.dataset.target).classList.add('active');
     });
@@ -246,6 +247,7 @@ document.getElementById('add-char-btn').onclick = () => {
 };
 
 document.getElementById('close-group-modal').onclick = () => groupModal.style.display = "none";
+document.getElementById('close-inside-group-btn').onclick = () => insideGroupModal.style.display = "none";
 document.getElementById('close-form-btn').onclick = () => charFormModal.style.display = "none";
 document.getElementById('close-view-btn').onclick = () => viewModal.style.display = "none";
 
@@ -513,6 +515,10 @@ async function fetchCharactersInGroup(groupId) {
                 document.getElementById('char-va').value = data.va || '';
                 document.getElementById('char-spell-name').value = data.spellName || '';
                 document.getElementById('char-spell-desc').value = data.spellDesc || '';
+                
+                // ดึงข้อมูลสรรพนามลงฟอร์ม
+                document.getElementById('char-pronouns').value = (data.pronouns || []).join('\n');
+                
                 document.getElementById('char-personality').value = data.personality || '';
                 document.getElementById('char-relationships').value = (data.relationships || []).join('\n');
                 document.getElementById('char-history').value = data.history || '';
@@ -559,11 +565,9 @@ async function fetchCharactersInGroup(groupId) {
 
                 const setArrayField = (wrapId, textId, valueArr, bullet = '•', checkLength = false) => {
                     const wrap = document.getElementById(wrapId);
-                    if (!valueArr || valueArr.length === 0 || valueArr.every(i => i.trim() === "")) {
-                        wrap.style.display = "none";
-                    } else {
+                    if (!valueArr || valueArr.length === 0 || valueArr.every(i => i.trim() === "")) wrap.style.display = "none";
+                    else {
                         wrap.style.display = "flex";
-                        // เงื่อนไข: ถ้าเป็นชื่ออื่นๆ และมีแค่ชื่อเดียว จะไม่มี bullet point นำหน้า
                         if (checkLength && valueArr.length === 1) {
                             document.getElementById(textId).innerHTML = valueArr[0];
                         } else {
@@ -574,16 +578,9 @@ async function fetchCharactersInGroup(groupId) {
 
                 document.getElementById('view-name-inside').innerText = data.name;
                 const jpNameEl = document.getElementById('view-jp-name-inside');
-                if (data.jpName) { 
-                    jpNameEl.innerText = data.jpName; 
-                    jpNameEl.style.display = "block"; 
-                } else { 
-                    jpNameEl.style.display = "none"; 
-                }
+                if (data.jpName) { jpNameEl.innerText = data.jpName; jpNameEl.style.display = "block"; } else jpNameEl.style.display = "none";
 
-                // ชื่ออื่นๆ (เช็คความยาว ถ้ามี 1 ชื่อไม่ต้องใส่จุด)
                 setArrayField('wrap-view-aliases', 'view-aliases', data.aliases, '•', true);
-                
                 setField('wrap-view-year', 'view-year', data.year);
                 setField('wrap-view-bday', 'view-bday', data.birthday);
                 setField('wrap-view-age', 'view-age', data.age);
@@ -610,20 +607,37 @@ async function fetchCharactersInGroup(groupId) {
                     document.getElementById('view-spell-content').innerHTML = h;
                 }
 
-                setField('wrap-view-personality', 'view-personality', data.personality);
+                // การแสดงผลของ สรรพนาม (ใช้ display: block ตามโครงสร้าง info-block)
+                const pronounsWrap = document.getElementById('wrap-view-pronouns');
+                if (!data.pronouns || data.pronouns.length === 0 || data.pronouns.every(i => i.trim() === "")) {
+                    pronounsWrap.style.display = "none";
+                } else {
+                    pronounsWrap.style.display = "block";
+                    document.getElementById('view-pronouns').innerHTML = data.pronouns.map(i => `◆ ${i}`).join('<br>');
+                }
+
+                // สำหรับอุปนิสัยและเนื้อเรื่อง
+                const setBlockField = (wrapId, textId, value) => {
+                    const wrap = document.getElementById(wrapId);
+                    if (!value || value.trim() === "") wrap.style.display = "none";
+                    else { wrap.style.display = "block"; document.getElementById(textId).innerHTML = value.replace(/\n/g, '<br>'); }
+                };
+
+                setBlockField('wrap-view-personality', 'view-personality', data.personality);
+                setBlockField('wrap-view-history', 'view-history', data.history);
                 
-                // ความสัมพันธ์และเกร็ดความรู้ ใส่จุดเสมอแม้จะมีบรรทัดเดียว
-                if (!data.relationships || data.relationships.length === 0 || data.relationships.every(i => i.trim() === "")) document.getElementById('wrap-view-relationships').style.display = "none";
+                // ความสัมพันธ์ เกร็ดความรู้
+                const relWrap = document.getElementById('wrap-view-relationships');
+                if (!data.relationships || data.relationships.length === 0 || data.relationships.every(i => i.trim() === "")) relWrap.style.display = "none";
                 else {
-                    document.getElementById('wrap-view-relationships').style.display = "block";
+                    relWrap.style.display = "block";
                     document.getElementById('view-relationships').innerHTML = data.relationships.map(i => `• ${i}`).join('<br>');
                 }
                 
-                setField('wrap-view-history', 'view-history', data.history);
-                
-                if (!data.trivia || data.trivia.length === 0 || data.trivia.every(i => i.trim() === "")) document.getElementById('wrap-view-trivia').style.display = "none";
+                const triviaWrap = document.getElementById('wrap-view-trivia');
+                if (!data.trivia || data.trivia.length === 0 || data.trivia.every(i => i.trim() === "")) triviaWrap.style.display = "none";
                 else {
-                    document.getElementById('wrap-view-trivia').style.display = "block";
+                    triviaWrap.style.display = "block";
                     document.getElementById('view-trivia').innerHTML = data.trivia.map(i => `◆ ${i}`).join('<br>');
                 }
 
@@ -665,6 +679,9 @@ document.getElementById('character-form').onsubmit = async (e) => {
         va: document.getElementById('char-va').value,
         spellName: document.getElementById('char-spell-name').value,
         spellDesc: document.getElementById('char-spell-desc').value,
+        
+        pronouns: textToArray(document.getElementById('char-pronouns').value),
+        
         personality: document.getElementById('char-personality').value,
         relationships: textToArray(document.getElementById('char-relationships').value),
         history: document.getElementById('char-history').value,
