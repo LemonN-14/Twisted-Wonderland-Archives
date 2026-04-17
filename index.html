@@ -28,7 +28,6 @@
     </nav>
 
     <main>
-        <!-- Characters View -->
         <section id="characters-view" class="view-section active">
             <ul class="sub-tabs">
                 <li class="active" data-target="nrc-grid">Night Raven College</li>
@@ -39,7 +38,6 @@
             <div id="rsa-grid" class="sub-view group-grid-container"></div>
         </section>
 
-        <!-- Story View -->
         <section id="story-view" class="view-section">
             <ul class="sub-tabs story-tabs">
                 <li class="active" data-target="main-story-view">Main Story</li>
@@ -53,12 +51,10 @@
             </div>
         </section>
         
-        <!-- Gameplay View -->
         <section id="gameplay-view" class="view-section">
             <h2 style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">Gameplay Data (Coming Soon)</h2>
         </section>
         
-        <!-- World View -->
         <section id="world-view" class="view-section">
             <div class="world-container">
                 <div id="world-toolbar" class="editor-toolbar" style="display: none;">
@@ -85,7 +81,6 @@
         </section>
     </main>
 
-    <!-- 1. Add/Edit Group Modal -->
     <div id="group-modal" class="modal" style="z-index: 1010;">
         <div class="modal-content" style="max-width: 500px;">
             <span class="close-btn" id="close-group-modal">&times;</span>
@@ -119,7 +114,6 @@
         </div>
     </div>
 
-    <!-- 2. Inside Group Modal -->
     <div id="inside-group-modal" class="modal" style="z-index: 1000;">
         <div class="modal-content" style="width: 90%; max-width: 1200px; min-height: 80vh;">
             <span class="close-btn group-close-btn" id="close-inside-group-btn">&times;</span> 
@@ -137,7 +131,6 @@
         </div>
     </div>
 
-    <!-- 3. Add/Edit Character Form Modal -->
     <div id="character-modal" class="modal" style="z-index: 1020;">
         <div class="modal-content">
             <span class="close-btn" id="close-form-btn">&times;</span>
@@ -150,11 +143,10 @@
             </ul>
 
             <form id="character-form">
-                <!-- Tab 1 -->
                 <div id="tab-personal" class="form-tab active">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label>รูปปกการ์ด (สัดส่วน 3:4)</label>
+                            <label>รูปปกการ์ด</label>
                             <div class="custom-file-input">
                                 <label for="char-image" class="file-btn">เลือกไฟล์</label>
                                 <span id="char-file-name" class="file-name">ไม่ได้เลือกไฟล์</span>
@@ -177,7 +169,9 @@
                         <div class="form-group full-width"><label>ชื่ออื่นๆ (Aliases)</label><textarea id="char-aliases" rows="3"></textarea></div>
                         <div class="form-group"><label>ชั้นปี</label><input type="text" id="char-year"></div>
                         <div class="form-group"><label>วันเกิด</label><input type="text" id="char-bday"></div>
-                        <div class="form-group"><label>อายุ</label><input type="text" id="char-age"></div>
+                        
+                        <div class="form-group full-width"><label>อายุ</label><textarea id="char-age" rows="2"></textarea></div>
+                        
                         <div class="form-group"><label>ส่วนสูง (cm)</label><input type="text" id="char-height"></div>
                         <div class="form-group"><label>มือข้างที่ถนัด</label><input type="text" id="char-hand"></div>
                         <div class="form-group"><label>บ้านเกิด</label><input type="text" id="char-homeland"></div>
@@ -191,17 +185,15 @@
                         <div class="form-group"><label>ความสามารถพิเศษ</label><input type="text" id="char-talent"></div>
                         <div class="form-group"><label>ชื่อนักพากย์</label><input type="text" id="char-va"></div>
                         <div class="form-group full-width"><label>ชื่อเวทย์ประจำตัว</label><input type="text" id="char-spell-name"></div>
-                        <div class="form-group full-width"><label>คำอธิบายเวทย์</label><textarea id="char-spell-desc" rows="2"></textarea></div>
+                        <div class="form-group full-width"><label>คำอธิบายเวทย์</label><textarea id="char-spell-desc" rows="3"></textarea></div>
                     </div>
                 </div>
-                <!-- Tab 2 (เพิ่มสรรพนาม) -->
                 <div id="tab-background" class="form-tab">
                     <div class="form-group"><label>สรรพนาม (Pronouns)</label><textarea id="char-pronouns" rows="3"></textarea></div>
                     <div class="form-group"><label>อุปนิสัย (Personality)</label><textarea id="char-personality" rows="5"></textarea></div>
                     <div class="form-group"><label>ความสัมพันธ์ (Relationships)</label><textarea id="char-relationships" rows="5"></textarea></div>
                     <div class="form-group"><label>ประวัติ/เนื้อเรื่อง (History/Story)</label><textarea id="char-history" rows="8"></textarea></div>
                 </div>
-                <!-- Tab 3 -->
                 <div id="tab-trivia" class="form-tab">
                     <div class="form-group"><label>เกร็ดความรู้ (Trivia)</label><textarea id="char-trivia" rows="10"></textarea></div>
                 </div>
@@ -213,7 +205,6 @@
         </div>
     </div>
 
-    <!-- 4. View Character Modal -->
     <div id="view-modal" class="modal" style="z-index: 1030;">
         <div class="modal-content view-content">
             <span class="close-btn" id="close-view-btn">&times;</span>
@@ -240,7 +231,7 @@
                                 <span class="label-title">ชื่อ:</span> 
                                 <div class="info-value">
                                     <div id="view-name-inside"></div>
-                                    <div id="view-jp-name-inside" style="color:var(--text-primary); margin-top:4px; font-size:1rem; text-align: center;"></div>
+                                    <div id="view-jp-name-inside" style="color:var(--text-primary); margin-top:4px; font-size:1rem;"></div>
                                 </div>
                             </div>
                             <div class="info-item" id="wrap-view-aliases"><span class="label-title">ชื่ออื่นๆ:</span><span class="info-value" id="view-aliases"></span></div>
@@ -259,12 +250,14 @@
                             <div class="info-item" id="wrap-view-dislike-food"><span class="label-title">อาหารที่ไม่ชอบ:</span> <span class="info-value" id="view-dislike-food"></span></div>
                             <div class="info-item" id="wrap-view-talent"><span class="label-title">ความสามารถพิเศษ:</span> <span class="info-value" id="view-talent"></span></div>
                             <div class="info-item" id="wrap-view-va"><span class="label-title">ชื่อนักพากย์:</span> <span class="info-value" id="view-va"></span></div>
-                            <div class="info-item" id="wrap-view-spell"><span class="label-title">เวทย์ประจำตัว:</span><span class="info-value" id="view-spell-content"></span></div>
+                            <div class="info-item-spell" id="wrap-view-spell">
+                                <span class="label-title" style="text-align: center; display: block; margin-bottom: 5px;">เวทย์ประจำตัว:</span>
+                                <span class="info-value" id="view-spell-content" style="display: block; width: 100%;"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- ประวัติ (เพิ่มสรรพนาม จัดซ้าย คำตอบลงมา) -->
                 <div id="vtab-background" class="v-tab">
                     <div class="info-block" id="wrap-view-pronouns">
                         <span class="label-title block-title">สรรพนาม:</span>
@@ -284,7 +277,6 @@
                     </div>
                 </div>
 
-                <!-- เกร็ดความรู้ -->
                 <div id="vtab-trivia" class="v-tab">
                     <div class="info-block" id="wrap-view-trivia">
                         <span class="label-title block-title">เกร็ดความรู้:</span>
@@ -295,7 +287,6 @@
         </div>
     </div>
 
-    <!-- 5. Crop Image Modal -->
     <div id="crop-modal" class="modal" style="z-index: 2000;">
         <div class="modal-content" style="max-width: 600px; text-align: center;">
             <h2>ปรับขนาดและครอบตัดรูปภาพ</h2>

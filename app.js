@@ -1,9 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc, query, where, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// ==========================================
-// 1. ตั้งค่า Firebase และ Cloudinary 
-// ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyASMrByO6jt_veaCaEDqdi-NdyEa7QFxSU",
   authDomain: "twisted-wonderland-archives.firebaseapp.com",
@@ -15,6 +12,7 @@ const firebaseConfig = {
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/ducs7aqwc/image/upload";
 const CLOUDINARY_UPLOAD_PRESET  = "Twisted_Wonderland_Archives";
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -35,7 +33,7 @@ let croppedCoverBlob = null;
 let croppedProfileBlob = null;
 
 const TRANSPARENT_GROUP_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22transparent%22%20stroke%3D%22%23555%22%20stroke-width%3D%222%22%20stroke-dasharray%3D%225%2C5%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22%23555%22%3ENo%20Icon%3C%2Ftext%3E%3C%2Fsvg%3E";
-const COVER_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22140%22%20height%3D%22180%22%20style%3D%22background%3A%23555%22%3E%3C%2Fsvg%3E";
+const COVER_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22140%22%20height%3D%22220%22%20style%3D%22background%3A%23555%22%3E%3C%2Fsvg%3E";
 
 function showToast(message) {
     const toast = document.getElementById('toast');
@@ -66,9 +64,63 @@ async function uploadImageToCloudinary(fileOrBlob) {
 
 const textToArray = (text) => text.split('\n').map(item => item.trim()).filter(item => item !== "");
 
-// ==========================================
-// 2. ระบบ Tabs
-// ==========================================
+const formatText = (text) => {
+    if (!text) return "";
+    let t = text.replace(/\n/g, '<br>');
+    t = t.replace(/#([^#]+)#/g, '<span class="spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>');
+    return t;
+};
+
+let draggedGroupNode = null;
+let draggedCharNode = null;
+
+function getDragAfterElement(container, x, y, itemClass) {
+    const draggableElements = [...container.querySelectorAll(`.${itemClass}:not(.dragging)`)];
+    let closestElement = null;
+    let minDistance = Number.POSITIVE_INFINITY;
+
+    draggableElements.forEach(child => {
+        const box = child.getBoundingClientRect();
+        const boxCenterX = box.left + box.width / 2;
+        const boxCenterY = box.top + box.height / 2;
+        
+        const dist = Math.sqrt(Math.pow(x - boxCenterX, 2) + Math.pow((y - boxCenterY) * 2, 2));
+        if (dist < minDistance) {
+            minDistance = dist;
+            if (x < boxCenterX) {
+                closestElement = child;
+            } else {
+                closestElement = child.nextElementSibling;
+                while (closestElement && closestElement.classList.contains('dragging')) {
+                    closestElement = closestElement.nextElementSibling;
+                }
+            }
+        }
+    });
+    return closestElement;
+}
+
+function setupGridDragAndDrop(gridId, itemClass) {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+    
+    grid.addEventListener('dragover', e => {
+        e.preventDefault();
+        const draggedNode = itemClass === 'char-card' ? draggedCharNode : draggedGroupNode;
+        if (!draggedNode) return;
+        
+        const afterElement = getDragAfterElement(grid, e.clientX, e.clientY, itemClass);
+        if (afterElement == null) {
+            grid.appendChild(draggedNode);
+        } else {
+            grid.insertBefore(draggedNode, afterElement);
+        }
+    });
+}
+setupGridDragAndDrop('nrc-grid', 'group-card');
+setupGridDragAndDrop('rsa-grid', 'group-card');
+setupGridDragAndDrop('character-grid', 'char-card');
+
 document.querySelectorAll('.main-tabs li').forEach(tab => {
     tab.addEventListener('click', () => {
         document.querySelectorAll('.main-tabs li').forEach(t => t.classList.remove('active'));
@@ -108,9 +160,6 @@ const setupTabs = (tabSelector, contentSelector) => {
 setupTabs('#character-modal .modal-tabs li', '#character-modal .form-tab');
 setupTabs('#view-modal .modal-tabs li', '#view-modal .v-tab');
 
-// ==========================================
-// 3. ระบบ Crop รูปภาพ
-// ==========================================
 function openCropModal(imageSrc, target, ratio) {
     currentCropTarget = target;
     const img = document.getElementById('crop-image-target');
@@ -181,7 +230,7 @@ const charFileName = document.getElementById('char-file-name');
 charImgInput.addEventListener('change', function(e) {
     if (this.files && this.files.length > 0) {
         const reader = new FileReader();
-        reader.onload = (e) => openCropModal(e.target.result, 'cover', 3/4);
+        reader.onload = (e) => openCropModal(e.target.result, 'cover', 140/220);
         reader.readAsDataURL(this.files[0]);
     }
 });
@@ -212,9 +261,6 @@ charProfileClearBtn.addEventListener('click', () => {
     charProfileRemoved = true;
 });
 
-// ==========================================
-// 4. ระบบ Modal (เปิด/ปิด)
-// ==========================================
 const groupModal = document.getElementById('group-modal');
 const insideGroupModal = document.getElementById('inside-group-modal');
 const charFormModal = document.getElementById('character-modal');
@@ -258,11 +304,6 @@ window.onclick = (e) => {
     if (e.target == viewModal) viewModal.style.display = "none";
 };
 
-// ==========================================
-// 5. จัดการข้อมูล Group + ระบบ Drag and Drop
-// ==========================================
-let draggedGroupNode = null;
-
 async function fetchGroups() {
     const nrcGrid = document.getElementById('nrc-grid');
     const rsaGrid = document.getElementById('rsa-grid');
@@ -276,7 +317,7 @@ async function fetchGroups() {
         let groups = [];
         snap.forEach(doc => {
             const data = doc.data();
-            const order = data.order || data.timestamp || 0;
+            const order = data.order ?? data.timestamp ?? 0;
             groups.push({ id: doc.id, data: data, order: order });
         });
         groups.sort((a, b) => a.order - b.order); 
@@ -299,30 +340,18 @@ async function fetchGroups() {
 
             card.addEventListener('dragstart', (e) => {
                 draggedGroupNode = card;
+                card.classList.add('dragging');
                 e.dataTransfer.effectAllowed = "move";
-                setTimeout(() => card.classList.add('drag-over'), 0);
             });
             card.addEventListener('dragend', () => {
-                card.classList.remove('drag-over');
+                card.classList.remove('dragging');
                 draggedGroupNode = null;
-            });
-            card.addEventListener('dragover', (e) => e.preventDefault());
-            card.addEventListener('drop', async (e) => {
-                e.preventDefault();
                 
-                if(draggedGroupNode && draggedGroupNode !== card) {
-                    const rect = card.getBoundingClientRect();
-                    const midX = rect.left + rect.width / 2;
-                    
-                    if (e.clientX < midX) card.parentNode.insertBefore(draggedGroupNode, card);
-                    else card.parentNode.insertBefore(draggedGroupNode, card.nextSibling);
-
-                    const parent = card.parentNode;
-                    const allCards = parent.querySelectorAll('.group-card');
-                    allCards.forEach((c, i) => {
-                        updateDoc(doc(db, "groups", c.dataset.id), { order: i });
-                    });
-                }
+                const parent = card.parentNode;
+                const allCards = parent.querySelectorAll('.group-card');
+                allCards.forEach((c, i) => {
+                    updateDoc(doc(db, "groups", c.dataset.id), { order: i });
+                });
             });
 
             card.onclick = () => {
@@ -413,11 +442,6 @@ document.getElementById('group-form').onsubmit = async (e) => {
     btn.disabled = false; loading.style.display = "none";
 };
 
-// ==========================================
-// 6. จัดการข้อมูล ตัวละคร (Characters)
-// ==========================================
-let draggedCharNode = null;
-
 async function fetchCharactersInGroup(groupId) {
     const grid = document.getElementById('character-grid');
     grid.innerHTML = ''; 
@@ -431,7 +455,7 @@ async function fetchCharactersInGroup(groupId) {
         let chars = [];
         snap.forEach(doc => {
             const data = doc.data();
-            const order = data.order || data.timestamp || 0;
+            const order = data.order ?? data.timestamp ?? 0;
             chars.push({ id: doc.id, data: data, order: order });
         });
         chars.sort((a, b) => a.order - b.order); 
@@ -456,30 +480,18 @@ async function fetchCharactersInGroup(groupId) {
 
             card.addEventListener('dragstart', (e) => {
                 draggedCharNode = card;
+                card.classList.add('dragging');
                 e.dataTransfer.effectAllowed = "move";
-                setTimeout(() => card.classList.add('drag-over'), 0);
             });
             card.addEventListener('dragend', () => {
-                card.classList.remove('drag-over');
+                card.classList.remove('dragging');
                 draggedCharNode = null;
-            });
-            card.addEventListener('dragover', (e) => e.preventDefault());
-            card.addEventListener('drop', async (e) => {
-                e.preventDefault();
                 
-                if(draggedCharNode && draggedCharNode !== card) {
-                    const rect = card.getBoundingClientRect();
-                    const midX = rect.left + rect.width / 2;
-                    
-                    if (e.clientX < midX) card.parentNode.insertBefore(draggedCharNode, card);
-                    else card.parentNode.insertBefore(draggedCharNode, card.nextSibling);
-
-                    const parent = card.parentNode;
-                    const allCards = parent.querySelectorAll('.char-card');
-                    allCards.forEach((c, i) => {
-                        updateDoc(doc(db, "characters", c.dataset.id), { order: i });
-                    });
-                }
+                const parent = card.parentNode;
+                const allCards = parent.querySelectorAll('.char-card');
+                allCards.forEach((c, i) => {
+                    updateDoc(doc(db, "characters", c.dataset.id), { order: i });
+                });
             });
 
             card.querySelector('.delete').onclick = async (e) => {
@@ -515,10 +527,7 @@ async function fetchCharactersInGroup(groupId) {
                 document.getElementById('char-va').value = data.va || '';
                 document.getElementById('char-spell-name').value = data.spellName || '';
                 document.getElementById('char-spell-desc').value = data.spellDesc || '';
-                
-                // ดึงข้อมูลสรรพนามลงฟอร์ม
                 document.getElementById('char-pronouns').value = (data.pronouns || []).join('\n');
-                
                 document.getElementById('char-personality').value = data.personality || '';
                 document.getElementById('char-relationships').value = (data.relationships || []).join('\n');
                 document.getElementById('char-history').value = data.history || '';
@@ -548,7 +557,7 @@ async function fetchCharactersInGroup(groupId) {
             card.onclick = () => {
                 const viewLeft = document.querySelector('.view-left');
                 if (data.profileImage) {
-                    viewLeft.style.display = "block";
+                    viewLeft.style.display = "flex";
                     document.getElementById('view-img').src = data.profileImage;
                 } else {
                     viewLeft.style.display = "none";
@@ -560,7 +569,7 @@ async function fetchCharactersInGroup(groupId) {
                 const setField = (wrapId, textId, value) => {
                     const wrap = document.getElementById(wrapId);
                     if (!value || value.trim() === "") wrap.style.display = "none";
-                    else { wrap.style.display = "flex"; document.getElementById(textId).innerHTML = value.replace(/\n/g, '<br>'); }
+                    else { wrap.style.display = "flex"; document.getElementById(textId).innerHTML = formatText(value); }
                 };
 
                 const setArrayField = (wrapId, textId, valueArr, bullet = '•', checkLength = false) => {
@@ -569,9 +578,9 @@ async function fetchCharactersInGroup(groupId) {
                     else {
                         wrap.style.display = "flex";
                         if (checkLength && valueArr.length === 1) {
-                            document.getElementById(textId).innerHTML = valueArr[0];
+                            document.getElementById(textId).innerHTML = formatText(valueArr[0]);
                         } else {
-                            document.getElementById(textId).innerHTML = valueArr.map(i => `${bullet} ${i}`).join('<br>');
+                            document.getElementById(textId).innerHTML = valueArr.map(i => `${bullet} ${formatText(i)}`).join('<br>');
                         }
                     }
                 };
@@ -600,45 +609,41 @@ async function fetchCharactersInGroup(groupId) {
                 const spellWrap = document.getElementById('wrap-view-spell');
                 if (!data.spellName && !data.spellDesc) spellWrap.style.display = "none";
                 else {
-                    spellWrap.style.display = "flex";
+                    spellWrap.style.display = "block";
                     let h = "";
-                    if (data.spellName) h += `<strong>${data.spellName}</strong><br>`;
-                    if (data.spellDesc) h += `<span class="info-value">${data.spellDesc.replace(/\n/g, '<br>')}</span>`;
+                    if (data.spellName) h += `<div style="text-align: center; font-weight: bold; color: var(--accent-color); margin-bottom: 5px;">${formatText(data.spellName)}</div>`;
+                    if (data.spellDesc) h += `<div class="info-box">${formatText(data.spellDesc)}</div>`;
                     document.getElementById('view-spell-content').innerHTML = h;
                 }
 
-                // การแสดงผลของ สรรพนาม (ใช้ display: block ตามโครงสร้าง info-block)
                 const pronounsWrap = document.getElementById('wrap-view-pronouns');
-                if (!data.pronouns || data.pronouns.length === 0 || data.pronouns.every(i => i.trim() === "")) {
-                    pronounsWrap.style.display = "none";
-                } else {
+                if (!data.pronouns || data.pronouns.length === 0 || data.pronouns.every(i => i.trim() === "")) pronounsWrap.style.display = "none";
+                else {
                     pronounsWrap.style.display = "block";
-                    document.getElementById('view-pronouns').innerHTML = data.pronouns.map(i => `◆ ${i}`).join('<br>');
+                    document.getElementById('view-pronouns').innerHTML = data.pronouns.map(i => `◆ ${formatText(i)}`).join('<br>');
                 }
 
-                // สำหรับอุปนิสัยและเนื้อเรื่อง
                 const setBlockField = (wrapId, textId, value) => {
                     const wrap = document.getElementById(wrapId);
                     if (!value || value.trim() === "") wrap.style.display = "none";
-                    else { wrap.style.display = "block"; document.getElementById(textId).innerHTML = value.replace(/\n/g, '<br>'); }
+                    else { wrap.style.display = "block"; document.getElementById(textId).innerHTML = formatText(value); }
                 };
 
                 setBlockField('wrap-view-personality', 'view-personality', data.personality);
                 setBlockField('wrap-view-history', 'view-history', data.history);
                 
-                // ความสัมพันธ์ เกร็ดความรู้
                 const relWrap = document.getElementById('wrap-view-relationships');
                 if (!data.relationships || data.relationships.length === 0 || data.relationships.every(i => i.trim() === "")) relWrap.style.display = "none";
                 else {
                     relWrap.style.display = "block";
-                    document.getElementById('view-relationships').innerHTML = data.relationships.map(i => `• ${i}`).join('<br>');
+                    document.getElementById('view-relationships').innerHTML = data.relationships.map(i => `• ${formatText(i)}`).join('<br>');
                 }
                 
                 const triviaWrap = document.getElementById('wrap-view-trivia');
                 if (!data.trivia || data.trivia.length === 0 || data.trivia.every(i => i.trim() === "")) triviaWrap.style.display = "none";
                 else {
                     triviaWrap.style.display = "block";
-                    document.getElementById('view-trivia').innerHTML = data.trivia.map(i => `◆ ${i}`).join('<br>');
+                    document.getElementById('view-trivia').innerHTML = data.trivia.map(i => `◆ ${formatText(i)}`).join('<br>');
                 }
 
                 viewModal.style.display = "block";
@@ -679,9 +684,7 @@ document.getElementById('character-form').onsubmit = async (e) => {
         va: document.getElementById('char-va').value,
         spellName: document.getElementById('char-spell-name').value,
         spellDesc: document.getElementById('char-spell-desc').value,
-        
         pronouns: textToArray(document.getElementById('char-pronouns').value),
-        
         personality: document.getElementById('char-personality').value,
         relationships: textToArray(document.getElementById('char-relationships').value),
         history: document.getElementById('char-history').value,
@@ -719,9 +722,6 @@ document.getElementById('character-form').onsubmit = async (e) => {
     btn.disabled = false; load.style.display = "none";
 };
 
-// ==========================================
-// 7. หน้า World & Rich Text Editor
-// ==========================================
 const worldEditor = document.getElementById('world-editor');
 const worldToolbar = document.getElementById('world-toolbar');
 const saveWorldBtn = document.getElementById('save-world-btn');
