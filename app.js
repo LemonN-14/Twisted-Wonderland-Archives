@@ -569,14 +569,14 @@ async function fetchCharactersInGroup(groupId) {
                 const setField = (wrapId, textId, value) => {
                     const wrap = document.getElementById(wrapId);
                     if (!value || value.trim() === "") wrap.style.display = "none";
-                    else { wrap.style.display = "flex"; document.getElementById(textId).innerHTML = formatText(value); }
+                    else { wrap.style.display = "grid"; document.getElementById(textId).innerHTML = formatText(value); }
                 };
 
                 const setArrayField = (wrapId, textId, valueArr, bullet = '•', checkLength = false) => {
                     const wrap = document.getElementById(wrapId);
                     if (!valueArr || valueArr.length === 0 || valueArr.every(i => i.trim() === "")) wrap.style.display = "none";
                     else {
-                        wrap.style.display = "flex";
+                        wrap.style.display = "grid";
                         if (checkLength && valueArr.length === 1) {
                             document.getElementById(textId).innerHTML = formatText(valueArr[0]);
                         } else {
