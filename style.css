@@ -156,8 +156,6 @@ main { padding: 1.5rem; }
     overflow: hidden; 
     z-index: 1000;
 }
-
-/* บังคับหน้าต่างให้เท่ากันทุกหน้า */
 .modal-content { 
     background-color: var(--surface-color); 
     position: absolute;
@@ -168,7 +166,7 @@ main { padding: 1.5rem; }
     padding: 3rem 1.5rem 1.5rem 1.5rem; 
     width: 90%; 
     max-width: 800px; 
-    height: 85vh; /* ความสูงตายตัว */
+    height: 85vh; 
     overflow-y: auto;
     border-radius: 8px; 
     border: 1px solid var(--accent-color); 
@@ -176,13 +174,12 @@ main { padding: 1.5rem; }
     flex-direction: column;
 }
 
-/* ข้อยกเว้นสำหรับหน้าต่างกลุ่มให้ใหญ่หน่อย และครอปรูปให้เล็กหน่อย */
 #inside-group-modal .modal-content {
     max-width: 1200px;
 }
 #crop-modal .modal-content {
     max-width: 600px;
-    height: auto; /* หน้าครอบรูปปล่อยให้ยืดหยุ่นได้ */
+    height: auto; 
 }
 
 .close-btn { position: absolute; top: 15px; right: 20px; color: var(--text-secondary); font-size: 2rem; cursor: pointer; z-index: 50; }
@@ -241,7 +238,6 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
 .btn-primary { background-color: var(--accent-color); color: #000; padding: 10px 30px; border: none; border-radius: 4px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
 .btn-primary:hover { background-color: var(--accent-hover); }
 
-/* ให้ฟอร์มสามารถเลื่อนลงไปได้ภายในหน้าต่าง */
 #character-form { overflow-y: auto; flex: 1; padding-right: 5px;}
 
 .view-content { display: flex; flex-direction: column; padding-bottom: 2rem; }
@@ -292,7 +288,6 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
     text-align: center;
 }
 
-/* ทำให้กรอบแคบลงและอยู่ตรงกลาง */
 .info-box {
     background: rgb(0 0 0 / 25%);
     border: 1px solid var(--border-color);
@@ -315,16 +310,16 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
 }
 .block-title { 
     display: block; 
-    margin-bottom: 0.5rem; 
+    margin: 0 auto 0.5rem auto; /* จัดหัวข้อให้ซ้อนตรงกับกรอบ */
     font-size: 1.1rem; 
     color: var(--accent-color); 
     font-weight: bold; 
     border-bottom: 1px dashed var(--border-color); 
     padding-bottom: 0.5rem; 
-    text-align: center; /* ให้หัวข้อใหญ่อยู่กลาง */
+    text-align: left;
+    max-width: 600px; /* เท่ากับความกว้างของกรอบข้อมูล */
 }
 
-/* ทำให้กรอบแคบลงและอยู่ตรงกลาง */
 .info-block .info-value { 
     text-align: left; 
     display: block; 
@@ -337,25 +332,131 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
     margin: 0 auto;
 }
 
-.world-container { border: none; padding: 0; min-height: 400px; background: transparent; }
-.editor-toolbar { display: flex; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
+/* ============================ */
+/* หน้า World Layout */
+/* ============================ */
+.world-layout { 
+    display: flex; 
+    gap: 20px; 
+    align-items: flex-start; 
+}
+
+/* แถบสารบัญด้านซ้าย */
+.world-sidebar { 
+    width: 250px; 
+    background: var(--surface-light); 
+    padding: 15px; 
+    border-radius: 8px; 
+    border: 1px solid var(--border-color); 
+    position: sticky; 
+    top: 20px; 
+    max-height: 80vh; 
+    overflow-y: auto; 
+    flex-shrink: 0; 
+}
+.world-sidebar h3 { 
+    color: var(--accent-color); 
+    border-bottom: 1px dashed var(--border-color); 
+    padding-bottom: 10px; 
+    margin-bottom: 10px; 
+    text-align: left; 
+}
+#world-toc { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+}
+#world-toc li { margin-bottom: 8px; }
+#world-toc a { 
+    color: var(--text-primary); 
+    text-decoration: none; 
+    font-size: 0.95rem; 
+    display: block; 
+    transition: 0.2s; 
+    cursor: pointer; 
+}
+#world-toc a:hover { color: var(--accent-color); }
+#world-toc .toc-h1 { font-weight: bold; font-size: 1.05rem; color: var(--accent-color); margin-top: 10px;}
+#world-toc .toc-h2 { padding-left: 15px; font-size: 0.9rem; color: var(--text-secondary); }
+#world-toc .toc-h3 { padding-left: 30px; font-size: 0.85rem; color: #888; }
+#world-toc .toc-h4 { padding-left: 45px; font-size: 0.8rem; color: #666; font-style: italic; }
+
+/* พื้นที่ทำงานด้านขวา */
+.world-main { 
+    flex: 1; 
+    min-width: 0; 
+    position: relative; /* ให้ sticky อิงกับกรอบนี้ */
+}
+
+#world-display { 
+    padding: 15px; 
+    background: rgb(0 0 0 / 25%); 
+    border-radius: 8px; 
+    border: 1px solid var(--border-color); 
+    min-height: 400px; 
+    overflow-wrap: break-word;
+}
+
+.world-editor { 
+    min-height: 400px; 
+    background: var(--bg-color); 
+    border: 1px dashed var(--accent-color); 
+    padding: 15px; 
+    border-radius: 8px; 
+}
+
+/* ตั้งค่าหัวข้อในหน้าจอแสดงผลให้ไล่ระดับ */
+.world-h1 { color: var(--accent-color); border-bottom: 2px solid var(--border-color); padding-bottom: 5px; margin-top: 15px; margin-bottom: 10px; font-size: 1.5rem; font-weight: bold; }
+.world-h2 { color: var(--text-primary); margin-top: 15px; margin-bottom: 10px; font-size: 1.2rem; font-weight: bold; }
+.world-h3 { color: var(--text-secondary); margin-top: 10px; margin-bottom: 5px; font-size: 1.1rem; font-weight: bold; }
+.world-h4 { color: #888; margin-top: 10px; margin-bottom: 5px; font-size: 1rem; font-weight: bold; font-style: italic; }
+
+/* แถบเครื่องมือ World แบบ Sticky ล็อกติดด้านบน */
+#world-toolbar { 
+    position: sticky; 
+    top: 0; 
+    z-index: 100; 
+    background-color: var(--surface-color); 
+    padding: 15px 10px; 
+    border: 1px solid var(--border-color); 
+    border-radius: 8px;
+    margin-bottom: 15px; 
+    display: flex; 
+    gap: 8px; 
+    align-items: center; 
+    flex-wrap: wrap; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3); /* เพิ่มเงาให้ดูเด่นขึ้นเมื่อลอยอยู่ */
+}
 .editor-toolbar button { background: var(--surface-light); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
 .editor-toolbar button:hover { background: var(--accent-color); color: #000; }
 .editor-toolbar .divider { width: 1px; background: var(--border-color); height: 24px; margin: 0 5px; }
-.btn-save-world { background: var(--accent-color); color: #000; font-weight: bold; margin-left: auto; }
-.world-editor { min-height: 300px; outline: none; padding: 10px; border-radius: 4px; transition: 0.3s; }
-.world-editor[contenteditable="true"] { background: var(--bg-color); border: 1px dashed var(--accent-color); }
-.world-editor img { max-width: 100%; display: inline-block; resize: both; overflow: auto; border: 1px dashed transparent; }
-.world-editor[contenteditable="true"] img:hover { border-color: var(--accent-color); cursor: nwse-resize; }
 
-.world-toggle { display: inline-block; min-width: 250px; max-width: 100%; margin: 10px 0; background: var(--surface-light); padding: 10px; border-radius: 4px; border: 1px solid var(--border-color); vertical-align: top; }
-.world-toggle summary { cursor: pointer; font-weight: bold; color: var(--accent-color); outline: none; list-style: none; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; }
+/* ปุ่มสี 5 สี */
+.color-btn { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border-color); cursor: pointer; padding: 0 !important; min-width: 20px; transition: transform 0.2s; }
+.color-btn:hover { transform: scale(1.2); }
+
+/* Toggle สวยๆ */
+.world-toggle { display: block; width: 100%; margin: 10px 0; background: var(--surface-light); padding: 10px; border-radius: 4px; border: 1px solid var(--border-color); }
+.world-toggle summary { cursor: default; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .world-toggle summary::-webkit-details-marker { display: none; }
-.toggle-title { flex: 1; outline: none; word-break: break-word; min-height: 24px; }
-.toggle-content { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color); color: var(--text-primary); outline: none; min-height: 30px; }
+
+.toggle-icon { color: var(--accent-color); font-weight: bold; font-size: 1.2rem; display: inline-block; padding: 0 5px; cursor: pointer; transition: transform 0.2s; user-select: none; }
+.world-toggle[open] .toggle-icon { transform: rotate(90deg); }
+
+.toggle-title { flex: 1; color: #ffffff; outline: none; word-break: break-word; min-height: 24px; display: inline-block; vertical-align: middle; cursor: text; }
+.toggle-content { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color); color: #ffffff; outline: none; min-height: 30px; }
 [contenteditable="true"][data-placeholder]:empty::before { content: attr(data-placeholder); color: var(--text-secondary); pointer-events: none; font-weight: normal; display: block; }
+
+/* โหมด Display ไม่มีกรอบหรือสีพื้นหลังของกล่อง Toggle */
+#world-display .world-toggle { background: transparent; border: none; padding: 5px 0; box-shadow: none; }
+/* ซ่อนปุ่มกากบาทในโหมดดูข้อมูล */
+#world-display .delete-toggle-btn { display: none; }
+
 .delete-toggle-btn { background: var(--danger-color); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; line-height: 1; font-weight: bold; flex-shrink: 0;}
 .delete-toggle-btn:hover { background: #ff1744; transform: scale(1.1); }
+
+.world-editor img, #world-display img { max-width: 100%; display: inline-block; resize: both; overflow: auto; border: 1px dashed transparent; }
+.world-editor[contenteditable="true"] img:hover { border-color: var(--accent-color); cursor: nwse-resize; }
 
 .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: var(--accent-color); color: #000; padding: 12px 24px; border-radius: 4px; font-weight: bold; z-index: 3000; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, top 0.4s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
 .toast.show { opacity: 1; visibility: visible; top: 40px; }
@@ -388,10 +489,10 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
     .view-left { width: 150px; }
     
     .info-list { padding: 0; max-width: 100%; } 
-    .info-item { grid-template-columns: 1fr 1fr; gap: 0.5rem; padding: 10px 0; }
+    .info-item { grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 0; }
     
     .label-title, .info-value { text-align: left; }
-    .info-block .label-title, .info-block .info-value { text-align: left; }
+    .block-title { margin: 0 0 0.5rem 0; }
     
     .close-btn { top: 5px; right: 10px; } 
     .group-header { 
@@ -409,4 +510,10 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
     .grid-container { justify-content: center; }
 
     .card-actions { opacity: 1; visibility: visible; background: rgba(0,0,0,0.6); padding: 3px; border-radius: 4px; } 
+
+    /* ปรับ Layout หน้า World สำหรับมือถือ */
+    .world-layout { flex-direction: column; }
+    .world-sidebar { width: 100%; position: static; max-height: 200px; margin-bottom: 20px;}
+    
+    #world-toolbar { top: 0px; } /* ปรับแถบให้เหมาะกับมือถือ */
 }
