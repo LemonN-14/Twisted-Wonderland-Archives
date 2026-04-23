@@ -531,6 +531,10 @@ async function fetchCharactersInGroup(groupId) {
                     document.getElementById('char-hand').value = data.dominantHand || '';
                     document.getElementById('char-homeland').value = data.homeland || '';
                     document.getElementById('char-city').value = data.city || '';
+                    
+                    document.getElementById('char-occupation').value = data.occupation || '';
+                    document.getElementById('char-position').value = data.position || '';
+                    
                     document.getElementById('char-club').value = data.club || '';
                     document.getElementById('char-subject').value = data.bestSubject || '';
                     document.getElementById('char-hobby').value = data.hobby || '';
@@ -622,6 +626,10 @@ async function fetchCharactersInGroup(groupId) {
                     setField('wrap-view-hand', 'view-hand', data.dominantHand);
                     setField('wrap-view-homeland', 'view-homeland', data.homeland);
                     setField('wrap-view-city', 'view-city', data.city);
+                    
+                    setField('wrap-view-occupation', 'view-occupation', data.occupation);
+                    setField('wrap-view-position', 'view-position', data.position);
+                    
                     setField('wrap-view-club', 'view-club', data.club);
                     setField('wrap-view-subject', 'view-subject', data.bestSubject);
                     setField('wrap-view-hobby', 'view-hobby', data.hobby);
@@ -703,6 +711,10 @@ document.getElementById('character-form').onsubmit = async (e) => {
         dominantHand: document.getElementById('char-hand').value,
         homeland: document.getElementById('char-homeland').value,
         city: document.getElementById('char-city').value,
+        
+        occupation: document.getElementById('char-occupation').value,
+        position: document.getElementById('char-position').value,
+        
         club: document.getElementById('char-club').value,
         bestSubject: document.getElementById('char-subject').value,
         hobby: document.getElementById('char-hobby').value,
@@ -772,9 +784,20 @@ function parseWorldContent(rawHtml) {
     const tocList = [];
     let idCounter = 0;
 
-    // 1. ซ่อมแซม Toggle รุ่นเก่าที่บันทึกก่อนหน้า ให้มีไอคอน ‣ กลับเข้ามา
-    temp.querySelectorAll('.world-toggle summary').forEach(summary => {
-        if(!summary.querySelector('.toggle-icon')) {
+    // 1. ซ่อมแซมและจัดเตรียม Toggle 
+    temp.querySelectorAll('.world-toggle').forEach(toggle => {
+        // ห่อด้วย wrapper ถ้ายังไม่มี (เพื่อรองรับการลากในโหมดแก้ไข)
+        let parent = toggle.parentElement;
+        if (!parent || !parent.classList.contains('toggle-wrapper')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'toggle-wrapper';
+            toggle.parentNode.insertBefore(wrapper, toggle);
+            wrapper.appendChild(toggle);
+        }
+
+        // จัดการไอคอนเปิดปิด
+        const summary = toggle.querySelector('summary');
+        if(summary && !summary.querySelector('.toggle-icon')) {
             const icon = document.createElement('span');
             icon.className = 'toggle-icon';
             icon.title = 'เปิด/ปิด';
@@ -810,7 +833,7 @@ function parseWorldContent(rawHtml) {
         heading.dataset.tocLevel = level;
         heading.dataset.tocText = text;
 
-        // ดึงสีจากการตั้งค่าโดยผู้ใช้งานมาร่วมด้วย (ถ้ามีการเปลี่ยนสีด้วย tool)
+        // ดึงสีจากการตั้งค่าโดยผู้ใช้งานมาร่วมด้วย
         let p = node.parentElement;
         let customColor = null;
         while(p && p !== temp) {
@@ -831,7 +854,7 @@ function parseWorldContent(rawHtml) {
         node.replaceWith(heading);
     });
 
-    // 3. เตรียมข้อมูลกล่อง Toggle ที่มีหัวข้อแล้ว ให้เข้าสู่สารบัญด้วย
+    // 3. เตรียมข้อมูลกล่อง Toggle ที่มีหัวข้อแล้ว ให้เข้าสู่สารบัญ
     temp.querySelectorAll('.world-toggle').forEach(toggle => {
         const titleEl = toggle.querySelector('.toggle-title');
         // ถ้าผู้ใช้พิมพ์ชื่อหัวข้อให้กล่อง Toggle แล้ว
@@ -859,8 +882,10 @@ function parseWorldContent(rawHtml) {
         });
     });
 
-    // ปลดล็อกการแก้ไขเนื้อหาออกในโหมดโชว์ข้อมูล
+    // ปลดล็อกเนื้อหาในโหมดโชว์ข้อมูล
     temp.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+    // เอา draggable ออกในโหมดโชว์ด้วย
+    temp.querySelectorAll('.toggle-wrapper').forEach(w => w.removeAttribute('draggable'));
 
     return { html: temp.innerHTML, toc: tocList };
 }
@@ -869,7 +894,6 @@ function updateWorldDisplay() {
     const { html, toc } = parseWorldContent(rawWorldContent);
     worldDisplay.innerHTML = html;
     
-    // สร้างสารบัญด้านซ้าย
     const tocContainer = document.getElementById('world-toc');
     tocContainer.innerHTML = '';
     
@@ -882,10 +906,9 @@ function updateWorldDisplay() {
         const a = document.createElement('a');
         a.href = `#${item.id}`;
         
-        // ถ้ารายการสารบัญมาจาก Toggle ให้ใส่ไอคอนเล็กๆ นำหน้า และขยับเยื้องเพิ่ม
         if(item.isToggle) {
             a.innerHTML = `<span style="color:var(--accent-color); font-size:0.75rem; margin-right:8px; vertical-align:middle;">◆</span>${item.text}`;
-            a.style.paddingLeft = "25px"; // เยื้องเข้าด้านในให้ดูสวยงาม
+            a.style.paddingLeft = "25px";
         } else {
             a.innerText = item.text;
         }
@@ -895,7 +918,6 @@ function updateWorldDisplay() {
             const target = document.getElementById(item.id);
             if(target) {
                 target.scrollIntoView({behavior: "smooth", block: "start"});
-                // ถ้าหัวข้อเป็น Toggle ให้กางเปิดกล่องด้วย
                 if(target.tagName.toLowerCase() === 'details' && !target.hasAttribute('open')) {
                     target.setAttribute('open', '');
                 }
@@ -929,11 +951,33 @@ worldDisplay.addEventListener('dblclick', () => {
     worldEditor.style.display = 'block';
     worldToolbar.style.display = 'flex';
     
-    // ซ่อมแซมไอคอน Toggle ก่อนนำเข้าสู่โหมดแก้ไข
+    // ซ่อมแซมเตรียมเข้าสู่โหมดแก้ไข
     const temp = document.createElement('div');
     temp.innerHTML = rawWorldContent;
-    temp.querySelectorAll('.world-toggle summary').forEach(summary => {
-        if(!summary.querySelector('.toggle-icon')) {
+    
+    temp.querySelectorAll('.world-toggle').forEach(toggle => {
+        let wrapper = toggle.parentElement;
+        if (!wrapper || !wrapper.classList.contains('toggle-wrapper')) {
+            wrapper = document.createElement('div');
+            wrapper.className = 'toggle-wrapper';
+            wrapper.setAttribute('contenteditable', 'false');
+            toggle.parentNode.insertBefore(wrapper, toggle);
+            wrapper.appendChild(toggle);
+        } else {
+            wrapper.setAttribute('contenteditable', 'false');
+        }
+
+        if(!wrapper.querySelector('.drag-handle')) {
+            const handle = document.createElement('span');
+            handle.className = 'drag-handle';
+            handle.title = 'ลากสลับที่';
+            handle.setAttribute('contenteditable', 'false');
+            handle.innerText = '☰';
+            wrapper.insertBefore(handle, toggle);
+        }
+
+        const summary = toggle.querySelector('summary');
+        if(summary && !summary.querySelector('.toggle-icon')) {
             const icon = document.createElement('span');
             icon.className = 'toggle-icon';
             icon.title = 'เปิด/ปิด';
@@ -941,6 +985,16 @@ worldDisplay.addEventListener('dblclick', () => {
             summary.insertBefore(icon, summary.firstChild);
             summary.insertBefore(document.createTextNode('\u00A0'), icon.nextSibling);
         }
+
+        // คืนค่าให้สามารถพิมพ์แก้หัวข้อ และ เนื้อหาได้สำหรับกล่องเก่า
+        const title = toggle.querySelector('.toggle-title');
+        if(title) title.setAttribute('contenteditable', 'true');
+        
+        const content = toggle.querySelector('.toggle-content');
+        if(content) content.setAttribute('contenteditable', 'true');
+        
+        const delBtn = toggle.querySelector('.delete-toggle-btn');
+        if(delBtn) delBtn.setAttribute('contenteditable', 'false');
     });
 
     worldEditor.innerHTML = temp.innerHTML;
@@ -956,7 +1010,7 @@ worldEditor.addEventListener('keydown', (e) => {
     }
 });
 
-// ระบบเลือกสี 5 สี
+// เลือกสี 5 สี
 document.querySelectorAll('.color-btn').forEach(btn => {
     btn.onclick = () => {
         document.execCommand('foreColor', false, btn.dataset.color);
@@ -996,25 +1050,20 @@ worldImageInput.onchange = async (e) => {
 
 btnWorldToggle.onclick = () => {
     worldEditor.focus();
-    // ห่อด้วย toggle-wrapper ป้องกันการลบด้วย Backspace พลาด และเพิ่มไอคอน toggle-icon แล้ว
-    const toggleHTML = `<div class="toggle-wrapper" contenteditable="false" style="margin: 10px 0;"><details class="world-toggle" open><summary><span class="toggle-icon" title="เปิด/ปิด">‣</span>&nbsp;<span class="toggle-title" contenteditable="true" data-placeholder="พิมพ์หัวข้อที่นี่..."></span><button contenteditable="false" class="delete-toggle-btn" title="ลบกล่องนี้">&times;</button></summary><div class="toggle-content" contenteditable="true" data-placeholder="พิมพ์เนื้อหาที่นี่..."></div></details></div><p>&nbsp;</p>`;
+    const toggleHTML = `<div class="toggle-wrapper" contenteditable="false"><span class="drag-handle" title="ลากสลับที่" contenteditable="false">☰</span><details class="world-toggle" open><summary><span class="toggle-icon" title="เปิด/ปิด">‣</span>&nbsp;<span class="toggle-title" contenteditable="true" data-placeholder="พิมพ์หัวข้อที่นี่..."></span><button contenteditable="false" class="delete-toggle-btn" title="ลบกล่องนี้">&times;</button></summary><div class="toggle-content" contenteditable="true" data-placeholder="พิมพ์เนื้อหาที่นี่..."></div></details></div><p>&nbsp;</p>`;
     document.execCommand('insertHTML', false, toggleHTML);
 };
 
-// ดัก event click ทั่วไปเพื่อป้องกันการสลับ state open/close ถ้าคลิกที่ไม่ใช่เป้าหมาย
+// ดัก Event คลิกสำหรับ Toggle: 
 document.addEventListener('click', (e) => {
     const summary = e.target.closest('summary');
     if (summary && summary.closest('.world-toggle')) {
-        const hasIcon = summary.querySelector('.toggle-icon');
-        if (hasIcon) {
-            // โครงสร้างแบบใหม่: ยกเลิกการคลิกเพื่อสลับ (Toggle) ยกเว้นจะคลิกตรง .toggle-icon (ไอคอน ‣)
-            if (!e.target.closest('.toggle-icon')) {
-                e.preventDefault();
-            }
-        } else {
-            // โครงสร้างแบบเก่า (ถ้ามีหลงเหลืออยู่)
-            if (e.target.classList.contains('delete-toggle-btn') || e.target.classList.contains('toggle-title')) {
-                e.preventDefault();
+        // ให้คลิกที่ไอคอน ‣ เท่านั้น ถึงจะกาง/พับกล่องได้
+        if (!e.target.classList.contains('toggle-icon')) {
+            e.preventDefault();
+            // ถ้าคลิกโดนชื่อหัวข้อ ให้สั่งโฟกัสเผื่อไว้เพื่อให้มั่นใจว่าพิมพ์แก้ต่อได้
+            if (e.target.classList.contains('toggle-title')) {
+                e.target.focus();
             }
         }
     }
@@ -1026,10 +1075,88 @@ worldEditor.addEventListener('click', (e) => {
         if(confirm("ลบกล่องหัวข้อนี้ใช่หรือไม่?")) {
             const wrapper = e.target.closest('.toggle-wrapper');
             if (wrapper) wrapper.remove();
-            else e.target.closest('details').remove(); // รองรับกล่องที่สร้างก่อนหน้าที่จะมี wrapper
+            else e.target.closest('details').remove(); 
         }
     }
 });
+
+// ระบบ Drag & Drop สำหรับเรียงลำดับกล่อง Toggle ในหน้า World Editor
+let draggedToggle = null;
+
+// ยอมให้ตั้งค่า Draggable = true เฉพาะตอนที่จิ้มเมาส์บนปุ่ม ☰
+worldEditor.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('drag-handle')) {
+        const wrapper = e.target.closest('.toggle-wrapper');
+        if(wrapper) wrapper.setAttribute('draggable', 'true');
+    }
+});
+
+// ปลดการลากออกเมื่อปล่อยเมาส์
+worldEditor.addEventListener('mouseup', (e) => {
+    const wrapper = e.target.closest('.toggle-wrapper');
+    if(wrapper && wrapper.hasAttribute('draggable')) {
+        wrapper.removeAttribute('draggable');
+    }
+});
+
+worldEditor.addEventListener('dragstart', (e) => {
+    const wrapper = e.target.closest('.toggle-wrapper');
+    if (wrapper && wrapper.hasAttribute('draggable')) {
+        draggedToggle = wrapper;
+        e.dataTransfer.effectAllowed = "move";
+        wrapper.classList.add('dragging-toggle');
+        setTimeout(() => wrapper.style.opacity = '0.5', 0);
+        
+        // **ปิด contenteditable ชั่วคราวตอนลาก เพื่อกันเบราว์เซอร์กวนการย้ายตำแหน่ง**
+        worldEditor.setAttribute('contenteditable', 'false');
+    } else {
+        e.preventDefault(); // บล็อกไม่ให้ลากได้ถ้าไม่ได้กดตรง ☰ มาก่อน
+    }
+});
+
+worldEditor.addEventListener('dragend', (e) => {
+    const wrapper = e.target.closest('.toggle-wrapper');
+    if (wrapper) {
+        wrapper.classList.remove('dragging-toggle');
+        wrapper.style.opacity = '1';
+        wrapper.removeAttribute('draggable');
+        draggedToggle = null;
+        
+        // **คืนค่าให้พิมพ์เนื้อหาหน้า World ต่อได้เมื่อลากเสร็จ**
+        worldEditor.setAttribute('contenteditable', 'true');
+    }
+});
+
+worldEditor.addEventListener('dragover', (e) => {
+    if (!draggedToggle) return;
+    e.preventDefault(); 
+    e.dataTransfer.dropEffect = "move";
+});
+
+// การย้าย DOM จะมาทำที่จังหวะ Drop ชัวร์ที่สุด ไม่เพี้ยน
+worldEditor.addEventListener('drop', (e) => {
+    if (!draggedToggle) return;
+    e.preventDefault();
+    const afterElement = getDragAfterToggle(worldEditor, e.clientY);
+    if (afterElement == null) {
+        worldEditor.appendChild(draggedToggle);
+    } else {
+        worldEditor.insertBefore(draggedToggle, afterElement);
+    }
+});
+
+function getDragAfterToggle(container, y) {
+    const draggableElements = [...container.querySelectorAll('.toggle-wrapper:not(.dragging-toggle)')];
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
 
 fetchGroups();
 fetchWorldData();

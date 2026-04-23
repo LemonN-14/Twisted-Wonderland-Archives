@@ -10,7 +10,6 @@
 </head>
 <body>
 
-
     <header>
         <h1>Twisted Wonderland Archives</h1>
     </header>
@@ -148,7 +147,7 @@
                 </div>
                 <h2 id="inside-group-title">Group Name</h2>
                 <div class="group-actions-right">
-                    <button id="add-char-btn" class="btn-primary" style="padding: 8px 15px; font-size: 0.9rem;"><i class="fas fa-plus"></i> เพิ่มตัวละคร</button>
+                    <button id="add-char-btn" class="btn-primary" style="padding: 8px 15px; font-size: 0.9rem;"><i class="fas fa-plus"></i> <span class="hide-mobile">เพิ่มตัวละคร</span></button>
                 </div>
             </div>
             <div id="character-grid" class="grid-container"></div>
@@ -200,6 +199,10 @@
                         <div class="form-group"><label>มือข้างที่ถนัด</label><input type="text" id="char-hand"></div>
                         <div class="form-group"><label>บ้านเกิด</label><input type="text" id="char-homeland"></div>
                         <div class="form-group"><label>เมือง</label><input type="text" id="char-city"></div>
+                        
+                        <div class="form-group"><label>อาชีพ</label><input type="text" id="char-occupation"></div>
+                        <div class="form-group"><label>ตำแหน่ง</label><input type="text" id="char-position"></div>
+                        
                         <div class="form-group"><label>ชมรม</label><input type="text" id="char-club"></div>
                         <div class="form-group"><label>วิชาที่ถนัด</label><input type="text" id="char-subject"></div>
                         <div class="form-group"><label>งานอดิเรก</label><input type="text" id="char-hobby"></div>
@@ -266,6 +269,8 @@
                             <div class="info-item" id="wrap-view-hand"><span class="label-title">มือข้างที่ถนัด:</span> <span class="info-value" id="view-hand"></span></div>
                             <div class="info-item" id="wrap-view-homeland"><span class="label-title">บ้านเกิด:</span> <span class="info-value" id="view-homeland"></span></div>
                             <div class="info-item" id="wrap-view-city"><span class="label-title">เมือง:</span> <span class="info-value" id="view-city"></span></div>
+                            <div class="info-item" id="wrap-view-occupation"><span class="label-title">อาชีพ:</span> <span class="info-value" id="view-occupation"></span></div>
+                            <div class="info-item" id="wrap-view-position"><span class="label-title">ตำแหน่ง:</span> <span class="info-value" id="view-position"></span></div>
                             <div class="info-item" id="wrap-view-club"><span class="label-title">ชมรม:</span> <span class="info-value" id="view-club"></span></div>
                             <div class="info-item" id="wrap-view-subject"><span class="label-title">วิชาที่ถนัด:</span> <span class="info-value" id="view-subject"></span></div>
                             <div class="info-item" id="wrap-view-hobby"><span class="label-title">งานอดิเรก:</span> <span class="info-value" id="view-hobby"></span></div>
@@ -327,6 +332,7 @@
     </div>
 
     <div id="toast" class="toast">บันทึกข้อมูลสำเร็จ</div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script type="module" src="app.js"></script>
 </body>
