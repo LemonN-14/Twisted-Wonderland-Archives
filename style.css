@@ -18,14 +18,19 @@ body { background-color: var(--bg-color); color: var(--text-primary); line-heigh
 header { text-align: center; padding: 1.5rem 0; background: linear-gradient(to bottom, #000, var(--bg-color)); border-bottom: 1px solid var(--border-color); }
 header h1 { font-family: 'Georgia', serif; color: #e3d8a2; letter-spacing: 2px; font-size: 2.2rem; padding: 0 1rem; }
 
-.main-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; background-color: var(--surface-color); border-bottom: 2px solid var(--border-color); overflow-x: auto; white-space: nowrap; }
+/* นำการเลื่อน (overflow) ออกจาก main-nav เพื่อให้ล็อกปุ่ม + ไว้ */
+.main-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; background-color: var(--surface-color); border-bottom: 2px solid var(--border-color); }
 .nav-spacer { flex: 1; }
-.main-tabs { display: flex; list-style: none; flex: 2; justify-content: center; }
+
+/* ย้ายการเลื่อนมาใส่ที่ main-tabs โดยตรง */
+.main-tabs { display: flex; list-style: none; flex: 1; min-width: 0; justify-content: center; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.main-tabs::-webkit-scrollbar { display: none; }
 .main-tabs li { padding: 1rem 1.5rem; cursor: pointer; font-weight: bold; color: var(--text-secondary); transition: 0.3s; border-bottom: 3px solid transparent; }
 .main-tabs li:hover { color: var(--text-primary); }
 .main-tabs li.active { color: var(--accent-color); border-bottom: 3px solid var(--accent-color); }
-.nav-actions { flex: 1; display: flex; justify-content: flex-end; padding-left: 1rem; }
-#add-btn { background-color: var(--surface-light); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; width: 40px; height: 40px; min-width: 40px; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
+
+.nav-actions { flex-shrink: 0; display: flex; justify-content: flex-end; padding-left: 1rem; }
+#add-btn { background-color: var(--surface-light); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; width: 40px; height: 40px; min-width: 40px; cursor: pointer; font-size: 1.2rem; transition: 0.3s; padding: 0; }
 #add-btn:hover { background-color: var(--accent-color); color: #000; }
 
 main { padding: 1.5rem; }
@@ -479,22 +484,32 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
 }
 
 @media (max-width: 768px) {
-    header h1 { font-size: 1.8rem; }
-    .main-nav { padding: 0 1rem; }
-    .main-tabs li { padding: 1rem; }
-    .nav-actions { padding-left: 0.5rem; }
+    /* ลดขนาดฟอนต์โดยรวมเพื่อความกะทัดรัด */
+    body { font-size: 0.9rem; } 
+    header h1 { font-size: 1.6rem; padding: 0 0.5rem; }
+    
+    /* ปรับแต่งแถบนำทางให้ล็อกปุ่มเครื่องหมาย + ไว้ทางขวาเสมอ และบีบพื้นที่ว่าง */
+    .main-nav { padding: 0 0.5rem; gap: 5px; }
+    .nav-spacer { display: none; } 
+    .main-tabs { justify-content: flex-start; padding-right: 0; }
+    .main-tabs li { font-size: 0.9rem; padding: 0.8rem 1rem; }
+    .main-tabs li:last-child { padding-right: 1.5rem; } /* เผื่อพื้นที่ตอนเลื่อนไปขวาสุด */
+    
+    .nav-actions { padding: 0; flex: 0 0 auto; }
+    #add-btn { width: 35px; height: 35px; min-width: 35px; font-size: 1rem; }
     
     .form-grid { grid-template-columns: 1fr; }
     
-    .view-left { width: 150px; }
+    .view-left { width: 130px; }
     
+    /* ลดขนาดฟอนต์ของข้อมูลต่างๆ */
     .info-list { padding: 0; max-width: 100%; } 
-    .info-item { grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 0; }
+    .info-item { grid-template-columns: 1fr 1.5fr; gap: 8px; padding: 10px 0; font-size: 0.85rem; }
+    .label-title, .info-value { text-align: left; font-size: 0.85rem; }
+    .block-title { margin: 0 0 0.5rem 0; font-size: 0.95rem; }
+    .info-block .info-value { font-size: 0.85rem; padding: 1rem; }
     
-    .label-title, .info-value { text-align: left; }
-    .block-title { margin: 0 0 0.5rem 0; }
-    
-    .close-btn { top: 5px; right: 10px; } 
+    .close-btn { top: 5px; right: 10px; font-size: 1.5rem; } 
     .group-header { 
         flex-direction: row; 
         flex-wrap: nowrap;
@@ -506,14 +521,44 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
     .group-actions-right { margin: 0; flex-shrink: 0;}
     #add-char-btn { padding: 6px 10px; font-size: 0.8rem; }
     
-    .char-card { width: auto; min-width: 130px; } 
+    /* จัดการเรียงคอลัมน์หอให้เป็น 2 อันเสมอในมือถือ */
+    .group-grid-container { 
+        grid-template-columns: repeat(2, minmax(0, 1fr)); 
+        gap: 1.5rem 0.5rem; 
+    }
+    .group-name { font-size: 0.85rem; }
+    
+    /* แปลงแท็บย่อยและแท็บตัวละครให้เป็นแถวเดียว เลื่อนปัดซ้ายขวา และย่อตัวหนังสือ */
+    .sub-tabs, .modal-tabs { 
+        flex-wrap: nowrap; 
+        overflow-x: auto; 
+        justify-content: flex-start; 
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
+        padding-bottom: 5px;
+    }
+    .sub-tabs li, .modal-tabs li { font-size: 0.85rem; padding: 0.6rem 1rem; }
+    .sub-tabs::-webkit-scrollbar, .modal-tabs::-webkit-scrollbar { display: none; }
+    .sub-tabs li:last-child, .modal-tabs li:last-child { padding-right: 1.5rem; } /* เผื่อพื้นที่ตอนเลื่อนไปขวาสุด */
+    
+    /* บังคับแท็บ Story ให้อยู่ตรงกลางจอในมือถือ */
+    .story-tabs { justify-content: center; width: 100%; }
+    
+    .char-card { width: auto; min-width: 120px; } 
+    .char-name { font-size: 0.85rem; padding: 0.6rem 0.4rem; }
     .grid-container { justify-content: center; }
 
     .card-actions { opacity: 1; visibility: visible; background: rgba(0,0,0,0.6); padding: 3px; border-radius: 4px; } 
+    .action-btn { width: 24px; height: 24px; font-size: 0.7rem; }
 
     /* ปรับ Layout หน้า World สำหรับมือถือ */
     .world-layout { flex-direction: column; }
-    .world-sidebar { width: 100%; position: static; max-height: 200px; margin-bottom: 20px;}
+    .world-sidebar { width: 100%; position: static; max-height: 200px; margin-bottom: 20px; padding: 10px; }
+    #world-toc a { font-size: 0.85rem; }
+    #world-toolbar { top: 0px; padding: 10px; } 
     
-    #world-toolbar { top: 0px; } /* ปรับแถบให้เหมาะกับมือถือ */
+    .world-h1 { font-size: 1.3rem; }
+    .world-h2 { font-size: 1.1rem; }
+    .world-h3 { font-size: 1rem; }
+    .world-h4 { font-size: 0.9rem; }
 }
