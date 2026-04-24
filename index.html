@@ -15,7 +15,6 @@
     </header>
 
     <nav class="main-nav">
-        <div class="nav-spacer"></div>
         <ul class="main-tabs">
             <li class="active" data-target="characters-view">Characters</li>
             <li data-target="story-view">Story</li>
@@ -57,7 +56,11 @@
         
         <section id="world-view" class="view-section">
             <div class="world-layout">
-                <aside class="world-sidebar">
+                <button id="toggle-toc-btn" class="toggle-toc-edge-btn" title="เปิด/ปิดสารบัญ"><i class="fas fa-chevron-right"></i></button>
+                
+                <div id="toc-overlay" class="toc-overlay"></div>
+                <aside class="world-sidebar" id="world-sidebar">
+                    <button id="close-toc-inside-btn" class="btn-tool" style="width:100%; margin-bottom:15px; display:none;"><i class="fas fa-times"></i> ปิดสารบัญ</button>
                     <h3><i class="fas fa-list"></i> สารบัญ</h3>
                     <ul id="world-toc"></ul>
                 </aside>
@@ -73,7 +76,8 @@
                         <button type="button" onclick="document.execCommand('justifyCenter', false, null)" title="จัดกลาง"><i class="fas fa-align-center"></i></button>
                         <button type="button" onclick="document.execCommand('justifyRight', false, null)" title="จัดขวา"><i class="fas fa-align-right"></i></button>
                         <span class="divider"></span>
-                        <button type="button" onclick="document.execCommand('insertHorizontalRule', false, null)" title="เส้นคั่น"><i class="fas fa-minus"></i></button>
+                        <button type="button" onclick="document.execCommand('insertHorizontalRule', false, null)" title="เส้นคั่น (ทึบ)"><i class="fas fa-minus"></i></button>
+                        <button type="button" id="btn-dashed-line" title="เส้นคั่น (ปะ)"><i class="fas fa-ellipsis-h"></i></button>
                         <button type="button" id="btn-world-toggle" title="แทรกหัวข้อเปิด/ปิด"><i class="fas fa-caret-square-down"></i></button>
                         <button type="button" id="btn-world-image" title="เพิ่มรูปภาพ"><i class="fas fa-image"></i></button>
                         <input type="file" id="world-image-input" accept="image/*" style="display:none;">
@@ -192,17 +196,14 @@
                         <div class="form-group full-width"><label>ชื่ออื่นๆ (Aliases)</label><textarea id="char-aliases" rows="3"></textarea></div>
                         <div class="form-group"><label>ชั้นปี</label><input type="text" id="char-year"></div>
                         <div class="form-group"><label>วันเกิด</label><input type="text" id="char-bday"></div>
-                        
+                        <div class="form-group"><label>ราศี</label><input type="text" id="char-zodiac"></div>
                         <div class="form-group full-width"><label>อายุ</label><textarea id="char-age" rows="2"></textarea></div>
-                        
                         <div class="form-group"><label>ส่วนสูง (cm)</label><input type="text" id="char-height"></div>
                         <div class="form-group"><label>มือข้างที่ถนัด</label><input type="text" id="char-hand"></div>
                         <div class="form-group"><label>บ้านเกิด</label><input type="text" id="char-homeland"></div>
                         <div class="form-group"><label>เมือง</label><input type="text" id="char-city"></div>
-                        
                         <div class="form-group"><label>อาชีพ</label><input type="text" id="char-occupation"></div>
                         <div class="form-group"><label>ตำแหน่ง</label><input type="text" id="char-position"></div>
-                        
                         <div class="form-group"><label>ชมรม</label><input type="text" id="char-club"></div>
                         <div class="form-group"><label>วิชาที่ถนัด</label><input type="text" id="char-subject"></div>
                         <div class="form-group"><label>งานอดิเรก</label><input type="text" id="char-hobby"></div>
@@ -264,6 +265,7 @@
                             <div class="info-item" id="wrap-view-aliases"><span class="label-title">ชื่ออื่นๆ:</span><span class="info-value" id="view-aliases"></span></div>
                             <div class="info-item" id="wrap-view-year"><span class="label-title">ชั้นปี:</span> <span class="info-value" id="view-year"></span></div>
                             <div class="info-item" id="wrap-view-bday"><span class="label-title">วันเกิด:</span> <span class="info-value" id="view-bday"></span></div>
+                            <div class="info-item" id="wrap-view-zodiac"><span class="label-title">ราศี:</span> <span class="info-value" id="view-zodiac"></span></div>
                             <div class="info-item" id="wrap-view-age"><span class="label-title">อายุ:</span> <span class="info-value" id="view-age"></span></div>
                             <div class="info-item" id="wrap-view-height"><span class="label-title">ส่วนสูง:</span> <span class="info-value" id="view-height"></span></div>
                             <div class="info-item" id="wrap-view-hand"><span class="label-title">มือข้างที่ถนัด:</span> <span class="info-value" id="view-hand"></span></div>

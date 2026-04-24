@@ -457,7 +457,6 @@ async function fetchCharactersInGroup(groupId) {
             const data = doc.data();
             const order = data.order ?? data.timestamp ?? 0;
             
-            // ดึงเก็บแค่ข้อมูลพื้นฐานสำหรับโชว์บนการ์ด เพื่อลดการกิน Memory
             chars.push({ 
                 id: doc.id, 
                 order: order,
@@ -509,7 +508,6 @@ async function fetchCharactersInGroup(groupId) {
                 }
             };
 
-            // เมื่อกด Edit ค่อยดึงข้อมูลเต็มของตัวละครนั้นมาแสดง
             card.querySelector('.edit').onclick = async (e) => {
                 e.stopPropagation();
                 
@@ -526,6 +524,7 @@ async function fetchCharactersInGroup(groupId) {
                     document.getElementById('char-aliases').value = (data.aliases || []).join('\n');
                     document.getElementById('char-year').value = data.year || '';
                     document.getElementById('char-bday').value = data.birthday || '';
+                    document.getElementById('char-zodiac').value = data.zodiac || '';
                     document.getElementById('char-age').value = data.age || '';
                     document.getElementById('char-height').value = data.height || '';
                     document.getElementById('char-hand').value = data.dominantHand || '';
@@ -576,7 +575,6 @@ async function fetchCharactersInGroup(groupId) {
                 }
             };
 
-            // เมื่อกดดู (View) ค่อยดึงข้อมูลเต็มของตัวละครนั้นมาแสดง
             card.onclick = async () => {
                 
                 try {
@@ -621,6 +619,7 @@ async function fetchCharactersInGroup(groupId) {
                     setArrayField('wrap-view-aliases', 'view-aliases', data.aliases, '•', true);
                     setField('wrap-view-year', 'view-year', data.year);
                     setField('wrap-view-bday', 'view-bday', data.birthday);
+                    setField('wrap-view-zodiac', 'view-zodiac', data.zodiac);
                     setField('wrap-view-age', 'view-age', data.age);
                     setField('wrap-view-height', 'view-height', data.height);
                     setField('wrap-view-hand', 'view-hand', data.dominantHand);
@@ -706,6 +705,7 @@ document.getElementById('character-form').onsubmit = async (e) => {
         aliases: textToArray(document.getElementById('char-aliases').value),
         year: document.getElementById('char-year').value,
         birthday: document.getElementById('char-bday').value,
+        zodiac: document.getElementById('char-zodiac').value,
         age: document.getElementById('char-age').value,
         height: document.getElementById('char-height').value,
         dominantHand: document.getElementById('char-hand').value,
@@ -763,9 +763,6 @@ document.getElementById('character-form').onsubmit = async (e) => {
     btn.disabled = false; load.style.display = "none";
 };
 
-// ==========================================
-// 7. หน้า World & Rich Text Editor แบบใหม่
-// ==========================================
 const worldEditor = document.getElementById('world-editor');
 const worldDisplay = document.getElementById('world-display');
 const worldToolbar = document.getElementById('world-toolbar');
@@ -775,18 +772,52 @@ const btnWorldImage = document.getElementById('btn-world-image');
 const btnWorldToggle = document.getElementById('btn-world-toggle');
 const worldImageInput = document.getElementById('world-image-input');
 
+document.getElementById('btn-dashed-line').onclick = () => {
+    worldEditor.focus();
+    document.execCommand('insertHTML', false, '<hr class="dashed-hr"><p>&nbsp;</p>');
+};
+
+const toggleTocBtn = document.getElementById('toggle-toc-btn');
+const closeTocInsideBtn = document.getElementById('close-toc-inside-btn'); 
+const worldSidebar = document.getElementById('world-sidebar');
+const tocOverlay = document.getElementById('toc-overlay');
+const toggleIcon = toggleTocBtn ? toggleTocBtn.querySelector('i') : null;
+
+if (toggleTocBtn) {
+    toggleTocBtn.onclick = () => {
+        const isShowing = worldSidebar.classList.contains('show');
+        if (isShowing) {
+            hideSidebar();
+        } else {
+            worldSidebar.classList.add('show');
+            tocOverlay.classList.add('show');
+            toggleTocBtn.classList.add('show'); 
+            if(toggleIcon) toggleIcon.className = 'fas fa-chevron-left';
+        }
+    };
+}
+
+const hideSidebar = () => {
+    worldSidebar.classList.remove('show');
+    tocOverlay.classList.remove('show');
+    if (toggleTocBtn) {
+        toggleTocBtn.classList.remove('show');
+        if(toggleIcon) toggleIcon.className = 'fas fa-chevron-right';
+    }
+};
+
+if (closeTocInsideBtn) closeTocInsideBtn.onclick = hideSidebar;
+if (tocOverlay) tocOverlay.onclick = hideSidebar;
+
 let rawWorldContent = "";
 
-// ฟังก์ชันแปลงแท็ก # ## ### #### เป็นหัวข้อ และสร้างสารบัญ
 function parseWorldContent(rawHtml) {
     const temp = document.createElement('div');
     temp.innerHTML = rawHtml;
     const tocList = [];
     let idCounter = 0;
 
-    // 1. ซ่อมแซมและจัดเตรียม Toggle 
     temp.querySelectorAll('.world-toggle').forEach(toggle => {
-        // ห่อด้วย wrapper ถ้ายังไม่มี (เพื่อรองรับการลากในโหมดแก้ไข)
         let parent = toggle.parentElement;
         if (!parent || !parent.classList.contains('toggle-wrapper')) {
             const wrapper = document.createElement('div');
@@ -795,7 +826,6 @@ function parseWorldContent(rawHtml) {
             wrapper.appendChild(toggle);
         }
 
-        // จัดการไอคอนเปิดปิด
         const summary = toggle.querySelector('summary');
         if(summary && !summary.querySelector('.toggle-icon')) {
             const icon = document.createElement('span');
@@ -807,7 +837,6 @@ function parseWorldContent(rawHtml) {
         }
     });
 
-    // 2. หาข้อความที่ขึ้นต้นด้วย # และแปลงเป็น Headings (h1 - h4)
     const walker = document.createTreeWalker(temp, NodeFilter.SHOW_TEXT, null, false);
     const nodesToReplace = [];
 
@@ -833,7 +862,6 @@ function parseWorldContent(rawHtml) {
         heading.dataset.tocLevel = level;
         heading.dataset.tocText = text;
 
-        // ดึงสีจากการตั้งค่าโดยผู้ใช้งานมาร่วมด้วย
         let p = node.parentElement;
         let customColor = null;
         while(p && p !== temp) {
@@ -854,18 +882,15 @@ function parseWorldContent(rawHtml) {
         node.replaceWith(heading);
     });
 
-    // 3. เตรียมข้อมูลกล่อง Toggle ที่มีหัวข้อแล้ว ให้เข้าสู่สารบัญ
     temp.querySelectorAll('.world-toggle').forEach(toggle => {
         const titleEl = toggle.querySelector('.toggle-title');
-        // ถ้าผู้ใช้พิมพ์ชื่อหัวข้อให้กล่อง Toggle แล้ว
         if(titleEl && titleEl.innerText.trim() !== "") {
             toggle.classList.add('toc-item-element');
-            toggle.dataset.tocLevel = 'toggle'; // จะแสดงเป็นระดับ 2 ในสารบัญ
+            toggle.dataset.tocLevel = 'toggle'; 
             toggle.dataset.tocText = titleEl.innerText.trim();
         }
     });
 
-    // 4. สร้างสารบัญเรียงตามลำดับหน้ากระดาษ DOM Tree
     temp.querySelectorAll('.toc-item-element').forEach(el => {
         idCounter++;
         const id = `toc-heading-${idCounter}`;
@@ -882,9 +907,7 @@ function parseWorldContent(rawHtml) {
         });
     });
 
-    // ปลดล็อกเนื้อหาในโหมดโชว์ข้อมูล
     temp.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
-    // เอา draggable ออกในโหมดโชว์ด้วย
     temp.querySelectorAll('.toggle-wrapper').forEach(w => w.removeAttribute('draggable'));
 
     return { html: temp.innerHTML, toc: tocList };
@@ -907,7 +930,7 @@ function updateWorldDisplay() {
         a.href = `#${item.id}`;
         
         if(item.isToggle) {
-            a.innerHTML = `<span style="color:var(--accent-color); font-size:0.75rem; margin-right:8px; vertical-align:middle;">◆</span>${item.text}`;
+            a.innerHTML = `<span style="color:var(--accent-color); font-size:0.75rem; margin-right:8px; vertical-align:middle;"></span>${item.text}`;
             a.style.paddingLeft = "25px";
         } else {
             a.innerText = item.text;
@@ -921,6 +944,9 @@ function updateWorldDisplay() {
                 if(target.tagName.toLowerCase() === 'details' && !target.hasAttribute('open')) {
                     target.setAttribute('open', '');
                 }
+            }
+            if (window.innerWidth <= 1024) {
+                hideSidebar();
             }
         };
         
@@ -951,7 +977,6 @@ worldDisplay.addEventListener('dblclick', () => {
     worldEditor.style.display = 'block';
     worldToolbar.style.display = 'flex';
     
-    // ซ่อมแซมเตรียมเข้าสู่โหมดแก้ไข
     const temp = document.createElement('div');
     temp.innerHTML = rawWorldContent;
     
@@ -986,7 +1011,6 @@ worldDisplay.addEventListener('dblclick', () => {
             summary.insertBefore(document.createTextNode('\u00A0'), icon.nextSibling);
         }
 
-        // คืนค่าให้สามารถพิมพ์แก้หัวข้อ และ เนื้อหาได้สำหรับกล่องเก่า
         const title = toggle.querySelector('.toggle-title');
         if(title) title.setAttribute('contenteditable', 'true');
         
@@ -1002,7 +1026,6 @@ worldDisplay.addEventListener('dblclick', () => {
     worldEditor.focus();
 });
 
-// อนุญาตให้กดปุ่ม Tab บนคีย์บอร์ดแล้วเว้นวรรค
 worldEditor.addEventListener('keydown', (e) => {
     if (e.key === 'Tab') {
         e.preventDefault();
@@ -1010,7 +1033,6 @@ worldEditor.addEventListener('keydown', (e) => {
     }
 });
 
-// เลือกสี 5 สี
 document.querySelectorAll('.color-btn').forEach(btn => {
     btn.onclick = () => {
         document.execCommand('foreColor', false, btn.dataset.color);
@@ -1054,14 +1076,11 @@ btnWorldToggle.onclick = () => {
     document.execCommand('insertHTML', false, toggleHTML);
 };
 
-// ดัก Event คลิกสำหรับ Toggle: 
 document.addEventListener('click', (e) => {
     const summary = e.target.closest('summary');
     if (summary && summary.closest('.world-toggle')) {
-        // ให้คลิกที่ไอคอน ‣ เท่านั้น ถึงจะกาง/พับกล่องได้
         if (!e.target.classList.contains('toggle-icon')) {
             e.preventDefault();
-            // ถ้าคลิกโดนชื่อหัวข้อ ให้สั่งโฟกัสเผื่อไว้เพื่อให้มั่นใจว่าพิมพ์แก้ต่อได้
             if (e.target.classList.contains('toggle-title')) {
                 e.target.focus();
             }
@@ -1069,7 +1088,6 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ฟังชั่นก์การลบกล่อง Toggle 
 worldEditor.addEventListener('click', (e) => {
     if (e.target.classList.contains('delete-toggle-btn')) {
         if(confirm("ลบกล่องหัวข้อนี้ใช่หรือไม่?")) {
@@ -1080,10 +1098,8 @@ worldEditor.addEventListener('click', (e) => {
     }
 });
 
-// ระบบ Drag & Drop สำหรับเรียงลำดับกล่อง Toggle ในหน้า World Editor
 let draggedToggle = null;
 
-// ยอมให้ตั้งค่า Draggable = true เฉพาะตอนที่จิ้มเมาส์บนปุ่ม ☰
 worldEditor.addEventListener('mousedown', (e) => {
     if (e.target.classList.contains('drag-handle')) {
         const wrapper = e.target.closest('.toggle-wrapper');
@@ -1091,7 +1107,6 @@ worldEditor.addEventListener('mousedown', (e) => {
     }
 });
 
-// ปลดการลากออกเมื่อปล่อยเมาส์
 worldEditor.addEventListener('mouseup', (e) => {
     const wrapper = e.target.closest('.toggle-wrapper');
     if(wrapper && wrapper.hasAttribute('draggable')) {
@@ -1107,10 +1122,9 @@ worldEditor.addEventListener('dragstart', (e) => {
         wrapper.classList.add('dragging-toggle');
         setTimeout(() => wrapper.style.opacity = '0.5', 0);
         
-        // **ปิด contenteditable ชั่วคราวตอนลาก เพื่อกันเบราว์เซอร์กวนการย้ายตำแหน่ง**
         worldEditor.setAttribute('contenteditable', 'false');
     } else {
-        e.preventDefault(); // บล็อกไม่ให้ลากได้ถ้าไม่ได้กดตรง ☰ มาก่อน
+        e.preventDefault(); 
     }
 });
 
@@ -1122,7 +1136,6 @@ worldEditor.addEventListener('dragend', (e) => {
         wrapper.removeAttribute('draggable');
         draggedToggle = null;
         
-        // **คืนค่าให้พิมพ์เนื้อหาหน้า World ต่อได้เมื่อลากเสร็จ**
         worldEditor.setAttribute('contenteditable', 'true');
     }
 });
@@ -1131,13 +1144,8 @@ worldEditor.addEventListener('dragover', (e) => {
     if (!draggedToggle) return;
     e.preventDefault(); 
     e.dataTransfer.dropEffect = "move";
-});
-
-// การย้าย DOM จะมาทำที่จังหวะ Drop ชัวร์ที่สุด ไม่เพี้ยน
-worldEditor.addEventListener('drop', (e) => {
-    if (!draggedToggle) return;
-    e.preventDefault();
-    const afterElement = getDragAfterToggle(worldEditor, e.clientY);
+    
+    const afterElement = getDragAfterEditorElement(worldEditor, e.clientY);
     if (afterElement == null) {
         worldEditor.appendChild(draggedToggle);
     } else {
@@ -1145,8 +1153,16 @@ worldEditor.addEventListener('drop', (e) => {
     }
 });
 
-function getDragAfterToggle(container, y) {
-    const draggableElements = [...container.querySelectorAll('.toggle-wrapper:not(.dragging-toggle)')];
+worldEditor.addEventListener('drop', (e) => {
+    if (!draggedToggle) return;
+    e.preventDefault();
+});
+
+function getDragAfterEditorElement(container, y) {
+    const draggableElements = [...container.children].filter(child => {
+        return child !== draggedToggle && !child.classList.contains('dragging-toggle');
+    });
+    
     return draggableElements.reduce((closest, child) => {
         const box = child.getBoundingClientRect();
         const offset = y - box.top - box.height / 2;

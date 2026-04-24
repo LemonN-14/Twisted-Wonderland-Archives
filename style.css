@@ -12,25 +12,38 @@
 
 ::-webkit-scrollbar { display: none; }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; -ms-overflow-style: none; scrollbar-width: none; }
+ul, ol, li { list-style: none !important; margin: 0; padding: 0; }
 
 body { background-color: var(--bg-color); color: var(--text-primary); line-height: 1.6; overflow-x: hidden; }
 
 header { text-align: center; padding: 1.5rem 0; background: linear-gradient(to bottom, #000, var(--bg-color)); border-bottom: 1px solid var(--border-color); }
 header h1 { font-family: 'Georgia', serif; color: #e3d8a2; letter-spacing: 2px; font-size: 2.2rem; padding: 0 1rem; }
 
-/* นำการเลื่อน (overflow) ออกจาก main-nav เพื่อให้ล็อกปุ่ม + ไว้ */
-.main-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; background-color: var(--surface-color); border-bottom: 2px solid var(--border-color); }
-.nav-spacer { flex: 1; }
+.main-nav { 
+    display: flex; 
+    align-items: center; 
+    position: relative; 
+    padding: 0; 
+    background-color: var(--surface-color); 
+    border-bottom: 2px solid var(--border-color); 
+}
 
-/* ย้ายการเลื่อนมาใส่ที่ main-tabs โดยตรง */
-.main-tabs { display: flex; list-style: none; flex: 1; min-width: 0; justify-content: center; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.main-tabs { 
+    flex: 1; 
+    display: flex; 
+    justify-content: center; 
+    overflow-x: auto; 
+    white-space: nowrap; 
+    scrollbar-width: none; 
+    padding-left: 50px; 
+    padding-right: 50px; 
+}
 .main-tabs::-webkit-scrollbar { display: none; }
 .main-tabs li { padding: 1rem 1.5rem; cursor: pointer; font-weight: bold; color: var(--text-secondary); transition: 0.3s; border-bottom: 3px solid transparent; }
 .main-tabs li:hover { color: var(--text-primary); }
 .main-tabs li.active { color: var(--accent-color); border-bottom: 3px solid var(--accent-color); }
 
-/* ปรับให้ nav-actions กว้างเท่ากับ nav-spacer เพื่อให้เมนูอยู่กลางจอเป๊ะ */
-.nav-actions { flex: 1; display: flex; justify-content: flex-end; padding-left: 1rem; }
+.nav-actions { position: absolute; right: 10px; }
 #add-btn { background-color: var(--surface-light); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; width: 40px; height: 40px; min-width: 40px; cursor: pointer; font-size: 1.2rem; transition: 0.3s; padding: 0; }
 #add-btn:hover { background-color: var(--accent-color); color: #000; }
 
@@ -38,7 +51,6 @@ main { padding: 1.5rem; }
 .view-section { display: none; }
 .view-section.active { display: block; animation: fadeIn 0.4s; }
 
-/* แอนิเมชันสำหรับหน้า World */
 #world-view.active {
     display: block;
     animation: fadeInDown 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -49,7 +61,7 @@ main { padding: 1.5rem; }
     to { opacity: 1; transform: translateY(0); }
 }
 
-.sub-tabs { display: flex; justify-content: center; list-style: none; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; }
+.sub-tabs { display: flex; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
 .sub-tabs li { padding: 0.8rem 1.5rem; cursor: pointer; color: var(--text-secondary); font-weight: bold; border-bottom: 2px solid transparent; text-align: center; }
 .sub-tabs li.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }
 
@@ -222,7 +234,7 @@ h2 { color: var(--accent-color); margin-bottom: 1.5rem; text-align: center; font
 .btn-tool { background: var(--surface-light); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 1rem; transition: 0.2s; }
 .btn-tool:hover { background: var(--accent-color); color: #000; }
 
-.modal-tabs { display: flex; list-style: none; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; justify-content: center; flex-shrink: 0; flex-wrap: wrap;}
+.modal-tabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; justify-content: center; flex-shrink: 0; }
 .modal-tabs li { padding: 8px 15px; cursor: pointer; color: var(--text-secondary); text-align: center; white-space: nowrap; }
 .modal-tabs li.active { color: var(--text-primary); border-bottom: 2px solid var(--accent-color); }
 
@@ -327,14 +339,14 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
 }
 .block-title { 
     display: block; 
-    margin: 0 auto 0.5rem auto; /* จัดหัวข้อให้ซ้อนตรงกับกรอบ */
+    margin: 0 auto 0.5rem auto; 
     font-size: 1.1rem; 
     color: var(--accent-color); 
     font-weight: bold; 
     border-bottom: 1px dashed var(--border-color); 
     padding-bottom: 0.5rem; 
     text-align: left;
-    max-width: 600px; /* เท่ากับความกว้างของกรอบข้อมูล */
+    max-width: 600px; 
 }
 
 .info-block .info-value { 
@@ -349,16 +361,41 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
     margin: 0 auto;
 }
 
-/* ============================ */
-/* หน้า World Layout */
-/* ============================ */
 .world-layout { 
     display: flex; 
     gap: 20px; 
     align-items: flex-start; 
 }
 
-/* แถบสารบัญด้านซ้าย */
+.toggle-toc-edge-btn {
+    display: none;
+    position: fixed;
+    top: 50%; 
+    left: 0;
+    transform: translateY(-50%);
+    background: var(--accent-color);
+    color: #000;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    width: 30px;
+    height: 60px;
+    cursor: pointer;
+    z-index: 1045;
+    font-size: 1.2rem;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    transition: left 0.3s ease;
+}
+
+.toc-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1040;
+}
+
 .world-sidebar { 
     width: 250px; 
     background: var(--surface-light); 
@@ -398,14 +435,14 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
 #world-toc .toc-h3 { padding-left: 30px; font-size: 0.85rem; color: #888; }
 #world-toc .toc-h4 { padding-left: 45px; font-size: 0.8rem; color: #666; font-style: italic; }
 
-/* พื้นที่ทำงานด้านขวา */
 .world-main { 
     flex: 1; 
     min-width: 0; 
-    position: relative; /* ให้ sticky อิงกับกรอบนี้ */
+    position: relative; 
+    max-width: 900px;
+    margin: 0 auto;
 }
 
-/* เพิ่มระยะ padding ซ้ายขวา ให้ข้อมูลใน world */
 #world-display { 
     padding: 20px 30px; 
     background: rgb(0 0 0 / 25%); 
@@ -423,17 +460,14 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
     border-radius: 8px; 
 }
 
-/* ตั้งค่าหัวข้อในหน้าจอแสดงผลให้ไล่ระดับ */
 .world-h1 { color: var(--accent-color); border-bottom: 2px solid var(--border-color); padding-bottom: 5px; margin-top: 15px; margin-bottom: 10px; font-size: 1.5rem; font-weight: bold; }
 .world-h2 { color: var(--text-primary); margin-top: 15px; margin-bottom: 10px; font-size: 1.2rem; font-weight: bold; }
 .world-h3 { color: var(--text-secondary); margin-top: 10px; margin-bottom: 5px; font-size: 1.1rem; font-weight: bold; }
 .world-h4 { color: #888; margin-top: 10px; margin-bottom: 5px; font-size: 1rem; font-weight: bold; font-style: italic; }
 
-/* รูปแบบเส้นคั่น */
 .world-editor hr, #world-display hr { border: none; border-top: 1px solid var(--border-color); margin: 15px 0; }
 .world-editor hr.dashed-hr, #world-display hr.dashed-hr { border-top: 2px dashed var(--border-color); }
 
-/* แถบเครื่องมือ World แบบ Sticky ล็อกติดด้านบน */
 #world-toolbar { 
     position: sticky; 
     top: 0; 
@@ -453,11 +487,9 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
 .editor-toolbar button:hover { background: var(--accent-color); color: #000; }
 .editor-toolbar .divider { width: 1px; background: var(--border-color); height: 24px; margin: 0 5px; }
 
-/* ปุ่มสี 5 สี */
 .color-btn { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border-color); cursor: pointer; padding: 0 !important; min-width: 20px; transition: transform 0.2s; }
 .color-btn:hover { transform: scale(1.2); }
 
-/* Toggle สวยๆ */
 .toggle-wrapper { margin: 10px 0; position: relative; }
 .world-toggle { display: block; width: 100%; background: var(--surface-light); padding: 10px; border-radius: 4px; border: 1px solid var(--border-color); }
 .world-toggle summary { cursor: default; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -470,15 +502,12 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
 .toggle-content { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color); color: #ffffff; outline: none; min-height: 30px; }
 [contenteditable="true"][data-placeholder]:empty::before { content: attr(data-placeholder); color: var(--text-secondary); pointer-events: none; font-weight: normal; display: block; }
 
-/* โหมด Display ไม่มีกรอบหรือสีพื้นหลังของกล่อง Toggle */
 #world-display .world-toggle { background: transparent; border: none; padding: 5px 0; box-shadow: none; }
-/* ซ่อนปุ่มกากบาทในโหมดดูข้อมูล */
 #world-display .delete-toggle-btn { display: none; }
 
 .delete-toggle-btn { background: var(--danger-color); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; line-height: 1; font-weight: bold; flex-shrink: 0;}
 .delete-toggle-btn:hover { background: #ff1744; transform: scale(1.1); }
 
-/* ไอคอนลากจับ Toggle */
 .drag-handle { position: absolute; left: -20px; top: 15px; cursor: grab; color: var(--text-secondary); font-size: 1.2rem; user-select: none; display: none; }
 #world-editor .drag-handle { display: block; }
 .dragging-toggle { border: 2px dashed var(--accent-color); }
@@ -506,29 +535,55 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
     color: var(--text-primary);
 }
 
+@media (max-width: 1024px) {
+    .main-tabs, .story-tabs { justify-content: center; }
+    
+    .group-grid-container {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        max-width: 700px;
+    }
+    
+    .modal-tabs { justify-content: center; flex-wrap: wrap; }
+    
+    .toggle-toc-edge-btn { display: flex; }
+    .toggle-toc-edge-btn.show { left: 300px; }
+    
+    .world-sidebar {
+        position: fixed;
+        top: 0; left: -300px;
+        width: 300px;
+        height: 100vh;
+        max-height: 100vh;
+        z-index: 1050;
+        border-radius: 0;
+        border-right: 1px solid var(--accent-color);
+        transition: left 0.3s ease;
+        padding-top: 20px;
+        overflow-y: auto; 
+        padding-bottom: 50px;
+    }
+    .world-sidebar.show { left: 0; }
+    .toc-overlay.show { display: block; }
+}
+
 @media (max-width: 768px) {
-    /* ซ่อนข้อความในปุ่มของมือถือ */
     .hide-mobile { display: none; }
 
-    /* ลดขนาดฟอนต์โดยรวมเพื่อความกะทัดรัด */
     body { font-size: 0.9rem; } 
     header h1 { font-size: 1.6rem; padding: 0 0.5rem; }
     
-    /* ปรับแต่งแถบนำทางให้ล็อกปุ่มเครื่องหมาย + ไว้ทางขวาเสมอ และบีบพื้นที่ว่าง */
-    .main-nav { padding: 0 0.5rem; gap: 5px; }
+    .main-nav { padding: 0; gap: 5px; }
     .nav-spacer { display: none; } 
-    .main-tabs { justify-content: flex-start; padding-right: 0; }
+    .main-tabs { justify-content: center; padding-left: 50px; padding-right: 50px; } 
     .main-tabs li { font-size: 0.9rem; padding: 0.8rem 1rem; }
-    .main-tabs li:last-child { padding-right: 1.5rem; } /* เผื่อพื้นที่ตอนเลื่อนไปขวาสุด */
     
-    .nav-actions { padding: 0; flex: 0 0 auto; }
+    .nav-actions { padding: 0; position: absolute; right: 10px; }
     #add-btn { width: 35px; height: 35px; min-width: 35px; font-size: 1rem; }
     
     .form-grid { grid-template-columns: 1fr; }
     
     .view-left { width: 130px; }
     
-    /* ย่อขนาดฟอนต์ข้อมูลให้เล็กลงอีกสำหรับมือถือ */
     .info-list { padding: 0; max-width: 100%; } 
     .info-item { grid-template-columns: 1fr 1.5fr; gap: 8px; padding: 8px 0; }
     .label-title, .info-value { text-align: left; font-size: 0.8rem; }
@@ -537,7 +592,6 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
     
     .close-btn { top: 5px; right: 10px; font-size: 1.5rem; } 
     
-    /* จัด layout group-header ใหม่ (ปุ่มซ้ายทั้งหมด เรียงต่อกัน ชื่ออยู่กลาง) */
     .group-header { 
         flex-wrap: wrap;
         padding-top: 15px; 
@@ -558,27 +612,34 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
         word-break: break-word; 
     }
     
-    /* จัดการเรียงคอลัมน์หอให้เป็น 2 อันเสมอในมือถือ */
     .group-grid-container { 
-        grid-template-columns: repeat(2, minmax(0, 1fr)); 
-        gap: 1.5rem 0.5rem; 
+        grid-template-columns: repeat(3, minmax(0, 1fr)); 
+        gap: 1rem 0.5rem; 
     }
     .group-name { font-size: 0.85rem; }
     
-    /* แปลงแท็บย่อยและแท็บตัวละครให้เป็นแถวเดียว เลื่อนปัดซ้ายขวา และย่อตัวหนังสือ */
-    .sub-tabs, .modal-tabs { 
+    .sub-tabs { 
         flex-wrap: nowrap; 
         overflow-x: auto; 
-        justify-content: flex-start; 
+        justify-content: center; 
         -ms-overflow-style: none; 
         scrollbar-width: none; 
         padding-bottom: 5px;
     }
-    .sub-tabs li, .modal-tabs li { font-size: 0.85rem; padding: 0.6rem 1rem; }
-    .sub-tabs::-webkit-scrollbar, .modal-tabs::-webkit-scrollbar { display: none; }
-    .sub-tabs li:last-child, .modal-tabs li:last-child { padding-right: 1.5rem; } /* เผื่อพื้นที่ตอนเลื่อนไปขวาสุด */
+    .sub-tabs li { font-size: 0.85rem; padding: 0.6rem 1rem; }
+    .sub-tabs::-webkit-scrollbar { display: none; }
     
-    /* บังคับแท็บ Story ให้อยู่ตรงกลางจอในมือถือ */
+    .modal-tabs { 
+        flex-wrap: nowrap; 
+        overflow-x: auto; 
+        justify-content: center; 
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
+        padding-bottom: 5px;
+    }
+    .modal-tabs li { font-size: 0.85rem; padding: 0.6rem 1rem; }
+    .modal-tabs::-webkit-scrollbar { display: none; }
+    
     .story-tabs { justify-content: center; width: 100%; }
     
     .char-card { width: auto; min-width: 120px; } 
@@ -588,9 +649,7 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
     .card-actions { opacity: 1; visibility: visible; background: rgba(0,0,0,0.6); padding: 3px; border-radius: 4px; } 
     .action-btn { width: 24px; height: 24px; font-size: 0.7rem; }
 
-    /* ปรับ Layout หน้า World สำหรับมือถือ */
     .world-layout { flex-direction: column; }
-    .world-sidebar { width: 100%; position: static; max-height: 200px; margin-bottom: 20px; padding: 10px; }
     #world-toc a { font-size: 0.85rem; }
     #world-toolbar { top: 0px; padding: 10px; } 
     
@@ -599,7 +658,6 @@ select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:
     .world-h3 { font-size: 1rem; }
     .world-h4 { font-size: 0.9rem; }
     
-    /* ขยับ Padding ลงในมือถือ */
     #world-display { padding: 15px 25px; }
     .world-editor { padding: 15px 25px; }
     .drag-handle { left: -15px; font-size: 1rem; top: 12px; }
