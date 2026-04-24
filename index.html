@@ -22,7 +22,7 @@
             <li data-target="world-view">World</li>
         </ul>
         <div class="nav-actions">
-            <button id="add-btn" title="Add Group/Dorm"><i class="fas fa-plus"></i></button>
+            <button id="add-btn"><i class="fas fa-plus"></i></button>
         </div>
     </nav>
 
@@ -43,10 +43,10 @@
                 <li data-target="events-story-view">Events</li>
             </ul>
             <div id="main-story-view" class="sub-view active">
-                <h2 style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">Main Story Data (Coming Soon)</h2>
+                <div id="main-story-grid" class="story-grid-container"></div>
             </div>
             <div id="events-story-view" class="sub-view">
-                <h2 style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">Events Data (Coming Soon)</h2>
+                <div id="events-story-grid" class="story-grid-container"></div>
             </div>
         </section>
         
@@ -56,10 +56,11 @@
         
         <section id="world-view" class="view-section">
             <div class="world-layout">
-                <button id="toggle-toc-btn" class="toggle-toc-edge-btn" title="เปิด/ปิดสารบัญ"><i class="fas fa-chevron-right"></i></button>
+                <button id="toggle-toc-btn" class="toggle-toc-edge-btn"><i class="fas fa-chevron-right"></i></button>
                 
                 <div id="toc-overlay" class="toc-overlay"></div>
                 <aside class="world-sidebar" id="world-sidebar">
+                    <span class="close-toc-btn" id="close-toc-btn"><i class="fas fa-chevron-left"></i></span>
                     <button id="close-toc-inside-btn" class="btn-tool" style="width:100%; margin-bottom:15px; display:none;"><i class="fas fa-times"></i> ปิดสารบัญ</button>
                     <h3><i class="fas fa-list"></i> สารบัญ</h3>
                     <ul id="world-toc"></ul>
@@ -67,28 +68,30 @@
 
                 <div class="world-main">
                     <div id="world-toolbar" class="editor-toolbar" style="display: none;">
-                        <button type="button" onclick="document.execCommand('bold', false, null)" title="ตัวหนา"><i class="fas fa-bold"></i></button>
-                        <button type="button" onclick="document.execCommand('italic', false, null)" title="ตัวเอียง"><i class="fas fa-italic"></i></button>
-                        <button type="button" onclick="document.execCommand('underline', false, null)" title="ขีดเส้นใต้"><i class="fas fa-underline"></i></button>
-                        <button type="button" onclick="document.execCommand('strikeThrough', false, null)" title="ขีดเส้นทับ"><i class="fas fa-strikethrough"></i></button>
+                        <button type="button" onclick="document.execCommand('bold', false, null)"><i class="fas fa-bold"></i></button>
+                        <button type="button" onclick="document.execCommand('italic', false, null)"><i class="fas fa-italic"></i></button>
+                        <button type="button" onclick="document.execCommand('underline', false, null)"><i class="fas fa-underline"></i></button>
+                        <button type="button" onclick="document.execCommand('strikeThrough', false, null)"><i class="fas fa-strikethrough"></i></button>
                         <span class="divider"></span>
-                        <button type="button" onclick="document.execCommand('justifyLeft', false, null)" title="จัดซ้าย"><i class="fas fa-align-left"></i></button>
-                        <button type="button" onclick="document.execCommand('justifyCenter', false, null)" title="จัดกลาง"><i class="fas fa-align-center"></i></button>
-                        <button type="button" onclick="document.execCommand('justifyRight', false, null)" title="จัดขวา"><i class="fas fa-align-right"></i></button>
+                        <button type="button" onclick="document.execCommand('justifyLeft', false, null)"><i class="fas fa-align-left"></i></button>
+                        <button type="button" onclick="document.execCommand('justifyCenter', false, null)"><i class="fas fa-align-center"></i></button>
+                        <button type="button" onclick="document.execCommand('justifyRight', false, null)"><i class="fas fa-align-right"></i></button>
                         <span class="divider"></span>
-                        <button type="button" onclick="document.execCommand('insertHorizontalRule', false, null)" title="เส้นคั่น (ทึบ)"><i class="fas fa-minus"></i></button>
-                        <button type="button" id="btn-dashed-line" title="เส้นคั่น (ปะ)"><i class="fas fa-ellipsis-h"></i></button>
-                        <button type="button" id="btn-world-toggle" title="แทรกหัวข้อเปิด/ปิด"><i class="fas fa-caret-square-down"></i></button>
-                        <button type="button" id="btn-world-image" title="เพิ่มรูปภาพ"><i class="fas fa-image"></i></button>
+                        
+                        <button type="button" onclick="document.execCommand('insertHorizontalRule', false, null)"><i class="fas fa-minus"></i></button>
+                        <button type="button" id="btn-dashed-line"><i class="fas fa-ellipsis-h"></i></button>
+                        
+                        <button type="button" id="btn-world-toggle"><i class="fas fa-caret-square-down"></i></button>
+                        <button type="button" id="btn-world-image"><i class="fas fa-image"></i></button>
                         <input type="file" id="world-image-input" accept="image/*" style="display:none;">
                         
                         <span class="divider"></span>
                         <div class="color-picker" style="display: flex; gap: 5px; align-items: center;">
-                            <button type="button" class="color-btn" style="background-color: #ff5252;" data-color="#ff5252" title="สีแดง"></button>
-                            <button type="button" class="color-btn" style="background-color: #448aff;" data-color="#448aff" title="สีน้ำเงิน"></button>
-                            <button type="button" class="color-btn" style="background-color: #69f0ae;" data-color="#69f0ae" title="สีเขียว"></button>
-                            <button type="button" class="color-btn" style="background-color: #ffd740;" data-color="#ffd740" title="สีเหลือง"></button>
-                            <button type="button" class="color-btn" style="background-color: #e0e0e0;" data-color="#e0e0e0" title="สีขาว"></button>
+                            <button type="button" class="color-btn" style="background-color: #ff5252;" data-color="#ff5252"></button>
+                            <button type="button" class="color-btn" style="background-color: #448aff;" data-color="#448aff"></button>
+                            <button type="button" class="color-btn" style="background-color: #69f0ae;" data-color="#69f0ae"></button>
+                            <button type="button" class="color-btn" style="background-color: #ffd740;" data-color="#ffd740"></button>
+                            <button type="button" class="color-btn" style="background-color: #e0e0e0;" data-color="#e0e0e0"></button>
                         </div>
 
                         <div class="action-group" style="margin-left: auto; display: flex; gap: 10px;">
@@ -98,10 +101,7 @@
                         </div>
                     </div>
                     
-                    <div id="world-display" title="ดับเบิ้ลคลิกเพื่อแก้ไข">
-                        <p style="color: var(--text-secondary);">กำลังโหลดข้อมูล World... (ดับเบิ้ลคลิกเพื่อแก้ไข)</p>
-                    </div>
-
+                    <div id="world-display"></div>
                     <div id="world-editor" class="world-editor" style="display: none;"></div>
                 </div>
             </div>
@@ -114,23 +114,23 @@
             <h2 id="group-modal-title">สร้างไอคอนใหม่</h2>
             <form id="group-form">
                 <div class="form-group">
-                    <label>สังกัด (Category)</label>
+                    <label>สังกัด</label>
                     <select id="group-category">
                         <option value="NRC">Night Raven College</option>
                         <option value="RSA">Royal Sword Academy</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>รูปไอคอน (พื้นหลังใสได้)</label>
+                    <label>รูปไอคอน</label>
                     <div class="custom-file-input">
                         <label for="group-image" class="file-btn">เลือกไฟล์</label>
                         <span id="group-file-name" class="file-name">ไม่ได้เลือกไฟล์</span>
                         <input type="file" id="group-image" accept="image/*" style="display: none;">
-                        <button type="button" id="clear-group-img-btn" class="btn-tool clear-btn" style="display: none;" title="เอารูปออก"><i class="fas fa-times"></i></button>
+                        <button type="button" id="clear-group-img-btn" class="btn-tool clear-btn" style="display: none;"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>ชื่อกลุ่ม/หอ (Group Name)</label>
+                    <label>ชื่อกลุ่ม/หอ</label>
                     <input type="text" id="group-name" required>
                 </div>
                 <div class="form-actions">
@@ -146,10 +146,10 @@
             <span class="close-btn group-close-btn" id="close-inside-group-btn">&times;</span> 
             <div class="group-header">
                 <div class="group-actions-left">
-                    <button id="edit-group-btn" class="btn-tool" title="แก้ไขกลุ่ม"><i class="fas fa-edit"></i></button>
-                    <button id="delete-group-btn" class="btn-tool" title="ลบกลุ่ม"><i class="fas fa-trash"></i></button>
+                    <button id="edit-group-btn" class="btn-tool"><i class="fas fa-edit"></i></button>
+                    <button id="delete-group-btn" class="btn-tool"><i class="fas fa-trash"></i></button>
                 </div>
-                <h2 id="inside-group-title">Group Name</h2>
+                <h2 id="inside-group-title"></h2>
                 <div class="group-actions-right">
                     <button id="add-char-btn" class="btn-primary" style="padding: 8px 15px; font-size: 0.9rem;"><i class="fas fa-plus"></i> <span class="hide-mobile">เพิ่มตัวละคร</span></button>
                 </div>
@@ -182,7 +182,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>รูปโปรไฟล์ (สัดส่วน 1:1)</label>
+                            <label>รูปโปรไฟล์</label>
                             <div class="custom-file-input">
                                 <label for="char-profile-image" class="file-btn">เลือกไฟล์</label>
                                 <span id="char-profile-file-name" class="file-name">ไม่ได้เลือกไฟล์</span>
@@ -190,10 +190,9 @@
                                 <button type="button" id="clear-char-profile-btn" class="btn-tool clear-btn" style="display: none;"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
-                        
-                        <div class="form-group"><label>ชื่อ (Name)</label><input type="text" id="char-name" required></div>
-                        <div class="form-group"><label>ชื่อญี่ปุ่น (JP Name)</label><input type="text" id="char-jp-name"></div>
-                        <div class="form-group full-width"><label>ชื่ออื่นๆ (Aliases)</label><textarea id="char-aliases" rows="3"></textarea></div>
+                        <div class="form-group"><label>ชื่อ</label><input type="text" id="char-name" required></div>
+                        <div class="form-group"><label>ชื่อญี่ปุ่น</label><input type="text" id="char-jp-name"></div>
+                        <div class="form-group full-width"><label>ชื่ออื่นๆ</label><textarea id="char-aliases" rows="3"></textarea></div>
                         <div class="form-group"><label>ชั้นปี</label><input type="text" id="char-year"></div>
                         <div class="form-group"><label>วันเกิด</label><input type="text" id="char-bday"></div>
                         <div class="form-group"><label>ราศี</label><input type="text" id="char-zodiac"></div>
@@ -217,13 +216,13 @@
                     </div>
                 </div>
                 <div id="tab-background" class="form-tab">
-                    <div class="form-group"><label>สรรพนาม (Pronouns)</label><textarea id="char-pronouns" rows="3"></textarea></div>
-                    <div class="form-group"><label>อุปนิสัย (Personality)</label><textarea id="char-personality" rows="5"></textarea></div>
-                    <div class="form-group"><label>ความสัมพันธ์ (Relationships)</label><textarea id="char-relationships" rows="5"></textarea></div>
-                    <div class="form-group"><label>ประวัติ/เนื้อเรื่อง (History/Story)</label><textarea id="char-history" rows="8"></textarea></div>
+                    <div class="form-group"><label>สรรพนาม</label><textarea id="char-pronouns" rows="3"></textarea></div>
+                    <div class="form-group"><label>อุปนิสัย</label><textarea id="char-personality" rows="5"></textarea></div>
+                    <div class="form-group"><label>ความสัมพันธ์</label><textarea id="char-relationships" rows="5"></textarea></div>
+                    <div class="form-group"><label>ประวัติ/เนื้อเรื่อง</label><textarea id="char-history" rows="8"></textarea></div>
                 </div>
                 <div id="tab-trivia" class="form-tab">
-                    <div class="form-group"><label>เกร็ดความรู้ (Trivia)</label><textarea id="char-trivia" rows="10"></textarea></div>
+                    <div class="form-group"><label>เกร็ดความรู้</label><textarea id="char-trivia" rows="10"></textarea></div>
                 </div>
                 <div class="form-actions">
                     <button type="submit" id="submit-btn" class="btn-primary">บันทึกข้อมูล</button>
@@ -236,86 +235,124 @@
     <div id="view-modal" class="modal" style="z-index: 1030;">
         <div class="modal-content view-content">
             <span class="close-btn" id="close-view-btn">&times;</span>
-            
-            <div class="view-header">
-                <h2 id="view-name-top">Name</h2>
-            </div>
-
+            <div class="view-header"><h2 id="view-name-top"></h2></div>
             <ul class="view-tabs modal-tabs">
                 <li class="active" data-target="vtab-personal">ข้อมูลส่วนตัว</li>
                 <li data-target="vtab-background">ประวัติ</li>
                 <li data-target="vtab-trivia">เกร็ดความรู้</li>
             </ul>
-
             <div class="view-body">
                 <div id="vtab-personal" class="v-tab active">
                     <div class="personal-layout">
-                        <div class="view-left">
-                            <img id="view-img" src="" alt="Profile">
-                        </div>
-                        
+                        <div class="view-left"><img id="view-img" src=""></div>
                         <div class="info-list">
-                            <div class="info-item" id="wrap-view-name">
-                                <span class="label-title">ชื่อ:</span> 
-                                <div class="info-value">
-                                    <div id="view-name-inside"></div>
-                                    <div id="view-jp-name-inside" style="color:var(--text-primary); margin-top:4px; font-size:1rem;"></div>
-                                </div>
-                            </div>
+                            <div class="info-item" id="wrap-view-name"><span class="label-title">ชื่อ:</span><div class="info-value"><div id="view-name-inside"></div><div id="view-jp-name-inside" style="color:var(--text-primary); margin-top:4px; font-size:1rem;"></div></div></div>
                             <div class="info-item" id="wrap-view-aliases"><span class="label-title">ชื่ออื่นๆ:</span><span class="info-value" id="view-aliases"></span></div>
-                            <div class="info-item" id="wrap-view-year"><span class="label-title">ชั้นปี:</span> <span class="info-value" id="view-year"></span></div>
-                            <div class="info-item" id="wrap-view-bday"><span class="label-title">วันเกิด:</span> <span class="info-value" id="view-bday"></span></div>
-                            <div class="info-item" id="wrap-view-zodiac"><span class="label-title">ราศี:</span> <span class="info-value" id="view-zodiac"></span></div>
-                            <div class="info-item" id="wrap-view-age"><span class="label-title">อายุ:</span> <span class="info-value" id="view-age"></span></div>
-                            <div class="info-item" id="wrap-view-height"><span class="label-title">ส่วนสูง:</span> <span class="info-value" id="view-height"></span></div>
-                            <div class="info-item" id="wrap-view-hand"><span class="label-title">มือข้างที่ถนัด:</span> <span class="info-value" id="view-hand"></span></div>
-                            <div class="info-item" id="wrap-view-homeland"><span class="label-title">บ้านเกิด:</span> <span class="info-value" id="view-homeland"></span></div>
-                            <div class="info-item" id="wrap-view-city"><span class="label-title">เมือง:</span> <span class="info-value" id="view-city"></span></div>
-                            <div class="info-item" id="wrap-view-occupation"><span class="label-title">อาชีพ:</span> <span class="info-value" id="view-occupation"></span></div>
-                            <div class="info-item" id="wrap-view-position"><span class="label-title">ตำแหน่ง:</span> <span class="info-value" id="view-position"></span></div>
-                            <div class="info-item" id="wrap-view-club"><span class="label-title">ชมรม:</span> <span class="info-value" id="view-club"></span></div>
-                            <div class="info-item" id="wrap-view-subject"><span class="label-title">วิชาที่ถนัด:</span> <span class="info-value" id="view-subject"></span></div>
-                            <div class="info-item" id="wrap-view-hobby"><span class="label-title">งานอดิเรก:</span> <span class="info-value" id="view-hobby"></span></div>
-                            <div class="info-item" id="wrap-view-dislikes"><span class="label-title">สิ่งที่เกลียด:</span> <span class="info-value" id="view-dislikes"></span></div>
-                            <div class="info-item" id="wrap-view-fav-food"><span class="label-title">อาหารที่ชอบ:</span> <span class="info-value" id="view-fav-food"></span></div>
-                            <div class="info-item" id="wrap-view-dislike-food"><span class="label-title">อาหารที่ไม่ชอบ:</span> <span class="info-value" id="view-dislike-food"></span></div>
-                            <div class="info-item" id="wrap-view-talent"><span class="label-title">ความสามารถพิเศษ:</span> <span class="info-value" id="view-talent"></span></div>
-                            <div class="info-item" id="wrap-view-va"><span class="label-title">ชื่อนักพากย์:</span> <span class="info-value" id="view-va"></span></div>
+                            <div class="info-item" id="wrap-view-occupation"><span class="label-title">อาชีพ:</span><span class="info-value" id="view-occupation"></span></div>
+                            <div class="info-item" id="wrap-view-position"><span class="label-title">ตำแหน่ง:</span><span class="info-value" id="view-position"></span></div>
+                            <div class="info-item" id="wrap-view-year"><span class="label-title">ชั้นปี:</span><span class="info-value" id="view-year"></span></div>
+                            <div class="info-item" id="wrap-view-bday"><span class="label-title">วันเกิด:</span><span class="info-value" id="view-bday"></span></div>
+                            <div class="info-item" id="wrap-view-zodiac"><span class="label-title">ราศี:</span><span class="info-value" id="view-zodiac"></span></div>
+                            <div class="info-item" id="wrap-view-age"><span class="label-title">อายุ:</span><span class="info-value" id="view-age"></span></div>
+                            <div class="info-item" id="wrap-view-height"><span class="label-title">ส่วนสูง:</span><span class="info-value" id="view-height"></span></div>
+                            <div class="info-item" id="wrap-view-hand"><span class="label-title">มือข้างที่ถนัด:</span><span class="info-value" id="view-hand"></span></div>
+                            <div class="info-item" id="wrap-view-homeland"><span class="label-title">บ้านเกิด:</span><span class="info-value" id="view-homeland"></span></div>
+                            <div class="info-item" id="wrap-view-city"><span class="label-title">เมือง:</span><span class="info-value" id="view-city"></span></div>
+                            <div class="info-item" id="wrap-view-club"><span class="label-title">ชมรม:</span><span class="info-value" id="view-club"></span></div>
+                            <div class="info-item" id="wrap-view-subject"><span class="label-title">วิชาที่ถนัด:</span><span class="info-value" id="view-subject"></span></div>
+                            <div class="info-item" id="wrap-view-hobby"><span class="label-title">งานอดิเรก:</span><span class="info-value" id="view-hobby"></span></div>
+                            <div class="info-item" id="wrap-view-dislikes"><span class="label-title">สิ่งที่เกลียด:</span><span class="info-value" id="view-dislikes"></span></div>
+                            <div class="info-item" id="wrap-view-fav-food"><span class="label-title">อาหารที่ชอบ:</span><span class="info-value" id="view-fav-food"></span></div>
+                            <div class="info-item" id="wrap-view-dislike-food"><span class="label-title">อาหารที่ไม่ชอบ:</span><span class="info-value" id="view-dislike-food"></span></div>
+                            <div class="info-item" id="wrap-view-talent"><span class="label-title">ความสามารถพิเศษ:</span><span class="info-value" id="view-talent"></span></div>
+                            <div class="info-item" id="wrap-view-va"><span class="label-title">ชื่อนักพากย์:</span><span class="info-value" id="view-va"></span></div>
                         </div>
-
-                        <div id="wrap-view-spell">
-                            <span class="label-title" style="text-align: center; display: block; margin-bottom: 5px;">เวทย์ประจำตัว:</span>
-                            <span class="info-value" id="view-spell-content" style="display: block; width: 100%;"></span>
-                        </div>
-
+                        <div id="wrap-view-spell"><span class="label-title" style="text-align: center; display: block; margin-bottom: 5px;">เวทย์ประจำตัว:</span><span class="info-value" id="view-spell-content" style="display: block; width: 100%;"></span></div>
                     </div>
                 </div>
-                
                 <div id="vtab-background" class="v-tab">
-                    <div class="info-block" id="wrap-view-pronouns">
-                        <span class="label-title block-title">สรรพนาม:</span>
-                        <div class="info-value" id="view-pronouns"></div>
-                    </div>
-                    <div class="info-block" id="wrap-view-personality">
-                        <span class="label-title block-title">อุปนิสัย:</span>
-                        <div class="info-value" id="view-personality"></div>
-                    </div>
-                    <div class="info-block" id="wrap-view-relationships">
-                        <span class="label-title block-title">ความสัมพันธ์:</span>
-                        <div class="info-value" id="view-relationships"></div>
-                    </div>
-                    <div class="info-block" id="wrap-view-history">
-                        <span class="label-title block-title">ประวัติ/เนื้อเรื่อง:</span>
-                        <div class="info-value" id="view-history"></div>
-                    </div>
+                    <div class="info-block" id="wrap-view-pronouns"><span class="label-title block-title">สรรพนาม:</span><div class="info-value" id="view-pronouns"></div></div>
+                    <div class="info-block" id="wrap-view-personality"><span class="label-title block-title">อุปนิสัย:</span><div class="info-value" id="view-personality"></div></div>
+                    <div class="info-block" id="wrap-view-relationships"><span class="label-title block-title">ความสัมพันธ์:</span><div class="info-value" id="view-relationships"></div></div>
+                    <div class="info-block" id="wrap-view-history"><span class="label-title block-title">ประวัติ/เนื้อเรื่อง:</span><div class="info-value" id="view-history"></div></div>
                 </div>
-
                 <div id="vtab-trivia" class="v-tab">
-                    <div class="info-block" id="wrap-view-trivia">
-                        <span class="label-title block-title">เกร็ดความรู้:</span>
-                        <div class="info-value" id="view-trivia"></div>
+                    <div class="info-block" id="wrap-view-trivia"><span class="label-title block-title">เกร็ดความรู้:</span><div class="info-value" id="view-trivia"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="story-card-modal" class="modal" style="z-index: 1010;">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-btn">&times;</span>
+            <h2 id="story-card-title">สร้างสตอรี่ใหม่</h2>
+            <form id="story-card-form">
+                <div class="form-group">
+                    <label>หมวดหมู่</label>
+                    <select id="story-category">
+                        <option value="Main Story">Main Story</option>
+                        <option value="Events">Events</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>รูปภาพปก</label>
+                    <div class="custom-file-input">
+                        <label for="story-image" class="file-btn">เลือกไฟล์</label>
+                        <span id="story-file-name" class="file-name">ไม่ได้เลือกไฟล์</span>
+                        <input type="file" id="story-image" accept="image/*" style="display: none;">
+                        <button type="button" id="clear-story-img-btn" class="btn-tool clear-btn" style="display: none;"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label>ชื่อสตอรี่</label>
+                    <input type="text" id="story-name" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="submit-story-btn" class="btn-primary">บันทึกสตอรี่</button>
+                    <span id="story-loading-text" style="display:none; color: #b39ddb; margin-left:10px;">กำลังอัปโหลด...</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="story-content-modal" class="modal full-modal" style="z-index: 1050;">
+        <div class="modal-content">
+            <button class="back-btn" id="close-story-content-btn"><i class="fas fa-arrow-left"></i> กลับ</button>
+            <h2 id="story-content-header" style="margin: 0 0 1rem 0;"></h2>
+            
+            <div class="world-main" style="flex: 1; display: flex; flex-direction: column; width: 100%;">
+                <div id="story-toolbar" class="editor-toolbar" style="display: none;">
+                    <button type="button" onclick="document.execCommand('bold', false, null)"><i class="fas fa-bold"></i></button>
+                    <button type="button" onclick="document.execCommand('italic', false, null)"><i class="fas fa-italic"></i></button>
+                    <button type="button" onclick="document.execCommand('underline', false, null)"><i class="fas fa-underline"></i></button>
+                    <button type="button" onclick="document.execCommand('strikeThrough', false, null)"><i class="fas fa-strikethrough"></i></button>
+                    <span class="divider"></span>
+                    <button type="button" onclick="document.execCommand('justifyLeft', false, null)"><i class="fas fa-align-left"></i></button>
+                    <button type="button" onclick="document.execCommand('justifyCenter', false, null)"><i class="fas fa-align-center"></i></button>
+                    <button type="button" onclick="document.execCommand('justifyRight', false, null)"><i class="fas fa-align-right"></i></button>
+                    <span class="divider"></span>
+                    <button type="button" onclick="document.execCommand('insertHorizontalRule', false, null)"><i class="fas fa-minus"></i></button>
+                    <button type="button" id="btn-story-dashed-line"><i class="fas fa-ellipsis-h"></i></button>
+                    <button type="button" id="btn-story-toggle"><i class="fas fa-caret-square-down"></i></button>
+                    <button type="button" id="btn-story-image"><i class="fas fa-image"></i></button>
+                    <input type="file" id="story-image-input" accept="image/*" style="display:none;">
+                    <span class="divider"></span>
+                    <div class="color-picker" style="display: flex; gap: 5px; align-items: center;">
+                        <button type="button" class="color-btn" style="background-color: #ff5252;" data-color="#ff5252"></button>
+                        <button type="button" class="color-btn" style="background-color: #448aff;" data-color="#448aff"></button>
+                        <button type="button" class="color-btn" style="background-color: #69f0ae;" data-color="#69f0ae"></button>
+                        <button type="button" class="color-btn" style="background-color: #ffd740;" data-color="#ffd740"></button>
+                        <button type="button" class="color-btn" style="background-color: #e0e0e0;" data-color="#e0e0e0"></button>
+                    </div>
+                    <div class="action-group" style="margin-left: auto; display: flex; gap: 10px;">
+                        <span id="story-editor-loading" style="display:none; color:var(--accent-color); align-self: center;">กำลังอัปโหลด...</span>
+                        <button type="button" id="cancel-story-content-btn" class="btn-tool">ยกเลิก</button>
+                        <button type="button" id="save-story-content-btn" class="btn-primary">บันทึกเนื้อหา</button>
+                    </div>
+                </div>
+                <div id="story-display" class="world-editor" title="ดับเบิ้ลคลิกเพื่อแก้ไข"></div>
+                <div id="story-editor" class="world-editor" style="display: none;"></div>
             </div>
         </div>
     </div>

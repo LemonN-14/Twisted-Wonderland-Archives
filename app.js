@@ -1,5 +1,5 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc, query, where, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeApp } from "https://esm.run/firebase@10.8.0/app";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc, query, where, deleteField } from "https://esm.run/firebase@10.8.0/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyASMrByO6jt_veaCaEDqdi-NdyEa7QFxSU",
@@ -22,18 +22,79 @@ let currentGroupCategory = "";
 let editingGroupId = null;
 let editingCharacterId = null;
 
+let editingStoryId = null;
+let currentStoryContent = "";
+
 let groupImgRemoved = false;
 let charImgRemoved = false;
 let charProfileRemoved = false;
+let storyImgRemoved = false;
 
 let cropper = null;
 let currentCropTarget = ''; 
 let croppedGroupBlob = null;
 let croppedCoverBlob = null;
 let croppedProfileBlob = null;
+let croppedStoryBlob = null;
 
 const TRANSPARENT_GROUP_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22transparent%22%20stroke%3D%22%23555%22%20stroke-width%3D%222%22%20stroke-dasharray%3D%225%2C5%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22%23555%22%3ENo%20Icon%3C%2Ftext%3E%3C%2Fsvg%3E";
 const COVER_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22140%22%20height%3D%22220%22%20style%3D%22background%3A%23555%22%3E%3C%2Fsvg%3E";
+const STORY_PLACEHOLDER = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%2260%22%20style%3D%22background%3A%23555%22%3E%3C%2Fsvg%3E";
+
+const charFieldsConfig = [
+    { id: 'char-name', key: 'name', type: 'text' },
+    { id: 'char-jp-name', key: 'jpName', type: 'text' },
+    { id: 'char-aliases', key: 'aliases', type: 'array' },
+    { id: 'char-year', key: 'year', type: 'text' },
+    { id: 'char-bday', key: 'birthday', type: 'text' },
+    { id: 'char-zodiac', key: 'zodiac', type: 'text' },
+    { id: 'char-age', key: 'age', type: 'text' },
+    { id: 'char-height', key: 'height', type: 'text' },
+    { id: 'char-hand', key: 'dominantHand', type: 'text' },
+    { id: 'char-homeland', key: 'homeland', type: 'text' },
+    { id: 'char-city', key: 'city', type: 'text' },
+    { id: 'char-occupation', key: 'occupation', type: 'text' },
+    { id: 'char-position', key: 'position', type: 'text' },
+    { id: 'char-club', key: 'club', type: 'text' },
+    { id: 'char-subject', key: 'bestSubject', type: 'text' },
+    { id: 'char-hobby', key: 'hobby', type: 'text' },
+    { id: 'char-dislikes', key: 'dislikes', type: 'text' },
+    { id: 'char-fav-food', key: 'favFood', type: 'text' },
+    { id: 'char-dislike-food', key: 'dislikeFood', type: 'text' },
+    { id: 'char-talent', key: 'specialTalent', type: 'text' },
+    { id: 'char-va', key: 'va', type: 'text' },
+    { id: 'char-spell-name', key: 'spellName', type: 'text' },
+    { id: 'char-spell-desc', key: 'spellDesc', type: 'text' },
+    { id: 'char-pronouns', key: 'pronouns', type: 'array' },
+    { id: 'char-personality', key: 'personality', type: 'text' },
+    { id: 'char-relationships', key: 'relationships', type: 'array' },
+    { id: 'char-history', key: 'history', type: 'text' },
+    { id: 'char-trivia', key: 'trivia', type: 'array' }
+];
+
+const viewFieldsConfig = [
+    { type: 'array', idWrap: 'wrap-view-aliases', idText: 'view-aliases', key: 'aliases', bullet: '•' },
+    { type: 'text', idWrap: 'wrap-view-occupation', idText: 'view-occupation', key: 'occupation' },
+    { type: 'text', idWrap: 'wrap-view-position', idText: 'view-position', key: 'position' },
+    { type: 'text', idWrap: 'wrap-view-year', idText: 'view-year', key: 'year' },
+    { type: 'text', idWrap: 'wrap-view-bday', idText: 'view-bday', key: 'birthday' },
+    { type: 'text', idWrap: 'wrap-view-zodiac', idText: 'view-zodiac', key: 'zodiac' },
+    { type: 'text', idWrap: 'wrap-view-age', idText: 'view-age', key: 'age' },
+    { type: 'text', idWrap: 'wrap-view-height', idText: 'view-height', key: 'height' },
+    { type: 'text', idWrap: 'wrap-view-hand', idText: 'view-hand', key: 'dominantHand' },
+    { type: 'text', idWrap: 'wrap-view-homeland', idText: 'view-homeland', key: 'homeland' },
+    { type: 'text', idWrap: 'wrap-view-city', idText: 'view-city', key: 'city' },
+    { type: 'text', idWrap: 'wrap-view-club', idText: 'view-club', key: 'club' },
+    { type: 'text', idWrap: 'wrap-view-subject', idText: 'view-subject', key: 'bestSubject' },
+    { type: 'text', idWrap: 'wrap-view-hobby', idText: 'view-hobby', key: 'hobby' },
+    { type: 'text', idWrap: 'wrap-view-dislikes', idText: 'view-dislikes', key: 'dislikes' },
+    { type: 'text', idWrap: 'wrap-view-fav-food', idText: 'view-fav-food', key: 'favFood' },
+    { type: 'text', idWrap: 'wrap-view-dislike-food', idText: 'view-dislike-food', key: 'dislikeFood' },
+    { type: 'text', idWrap: 'wrap-view-talent', idText: 'view-talent', key: 'specialTalent' },
+    { type: 'text', idWrap: 'wrap-view-va', idText: 'view-va', key: 'va' },
+    { type: 'block', idWrap: 'wrap-view-personality', idText: 'view-personality', key: 'personality' },
+    { type: 'block', idWrap: 'wrap-view-history', idText: 'view-history', key: 'history' }
+];
 
 function showToast(message) {
     const toast = document.getElementById('toast');
@@ -73,44 +134,38 @@ const formatText = (text) => {
 
 let draggedGroupNode = null;
 let draggedCharNode = null;
+let draggedStoryNode = null;
 
 function getDragAfterElement(container, x, y, itemClass) {
     const draggableElements = [...container.querySelectorAll(`.${itemClass}:not(.dragging)`)];
-    let closestElement = null;
-    let minDistance = Number.POSITIVE_INFINITY;
-
-    draggableElements.forEach(child => {
+    return draggableElements.reduce((closest, child) => {
         const box = child.getBoundingClientRect();
         const boxCenterX = box.left + box.width / 2;
         const boxCenterY = box.top + box.height / 2;
-        
         const dist = Math.sqrt(Math.pow(x - boxCenterX, 2) + Math.pow((y - boxCenterY) * 2, 2));
-        if (dist < minDistance) {
-            minDistance = dist;
-            if (x < boxCenterX) {
-                closestElement = child;
-            } else {
-                closestElement = child.nextElementSibling;
-                while (closestElement && closestElement.classList.contains('dragging')) {
-                    closestElement = closestElement.nextElementSibling;
-                }
-            }
+        if (dist < closest.minDistance) {
+            return {
+                minDistance: dist,
+                element: itemClass === 'story-card' ? (y < boxCenterY ? child : child.nextElementSibling) : (x < boxCenterX ? child : child.nextElementSibling)
+            };
         }
-    });
-    return closestElement;
+        return closest;
+    }, { minDistance: Number.POSITIVE_INFINITY }).element;
 }
 
 function setupGridDragAndDrop(gridId, itemClass) {
     const grid = document.getElementById(gridId);
     if (!grid) return;
-    
     grid.addEventListener('dragover', e => {
         e.preventDefault();
-        const draggedNode = itemClass === 'char-card' ? draggedCharNode : draggedGroupNode;
+        let draggedNode = null;
+        if(itemClass === 'char-card') draggedNode = draggedCharNode;
+        else if(itemClass === 'group-card') draggedNode = draggedGroupNode;
+        else if(itemClass === 'story-card') draggedNode = draggedStoryNode;
+
         if (!draggedNode) return;
-        
         const afterElement = getDragAfterElement(grid, e.clientX, e.clientY, itemClass);
-        if (afterElement == null) {
+        if (afterElement == null || afterElement === draggedNode) {
             grid.appendChild(draggedNode);
         } else {
             grid.insertBefore(draggedNode, afterElement);
@@ -120,43 +175,45 @@ function setupGridDragAndDrop(gridId, itemClass) {
 setupGridDragAndDrop('nrc-grid', 'group-card');
 setupGridDragAndDrop('rsa-grid', 'group-card');
 setupGridDragAndDrop('character-grid', 'char-card');
+setupGridDragAndDrop('main-story-grid', 'story-card');
+setupGridDragAndDrop('events-story-grid', 'story-card');
 
-document.querySelectorAll('.main-tabs li').forEach(tab => {
-    tab.addEventListener('click', () => {
-        document.querySelectorAll('.main-tabs li').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById(tab.dataset.target).classList.add('active');
-
-        if(tab.dataset.target === 'world-view') {
-            document.getElementById('add-btn').style.display = 'none';
-        } else {
-            document.getElementById('add-btn').style.display = 'block';
-        }
-    });
-});
-
-document.querySelectorAll('.sub-tabs li').forEach(tab => {
-    tab.addEventListener('click', () => {
-        const parentSection = tab.closest('.view-section');
-        parentSection.querySelectorAll('.sub-tabs li').forEach(t => t.classList.remove('active'));
-        parentSection.querySelectorAll('.sub-view').forEach(v => v.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById(tab.dataset.target).classList.add('active');
-    });
-});
-
-const setupTabs = (tabSelector, contentSelector) => {
+function setupTabs(tabSelector, contentSelector, callback = null) {
     document.querySelectorAll(tabSelector).forEach(tab => {
         tab.addEventListener('click', () => {
-            const targetContainer = tab.closest('.modal-content') || document;
-            targetContainer.querySelectorAll(tabSelector).forEach(t => t.classList.remove('active'));
-            targetContainer.querySelectorAll(contentSelector).forEach(c => c.classList.remove('active'));
+            const container = tab.closest('.view-section') || tab.closest('.modal-content') || document;
+            container.querySelectorAll(tabSelector).forEach(t => t.classList.remove('active'));
+            container.querySelectorAll(contentSelector).forEach(c => c.classList.remove('active'));
             tab.classList.add('active');
             document.getElementById(tab.dataset.target).classList.add('active');
+            if (callback) callback(tab);
         });
     });
-};
+}
+
+setupTabs('.main-tabs li', '.view-section', (tab) => {
+    const targetId = tab.dataset.target;
+    document.getElementById('add-btn').style.display = targetId === 'world-view' || targetId === 'gameplay-view' ? 'none' : 'block';
+    
+    const targetView = document.getElementById(targetId);
+    if (targetView) {
+        const firstSubTab = targetView.querySelector('.sub-tabs li:first-child');
+        if (firstSubTab && !firstSubTab.classList.contains('active')) {
+            firstSubTab.click();
+        }
+    }
+    
+    if (targetId === 'world-view') {
+        window.scrollTo(0, 0);
+        const viewArea = document.getElementById('world-display');
+        if (viewArea) {
+            viewArea.querySelectorAll('details.world-toggle').forEach(details => {
+                if(!details.hasAttribute('open')) details.setAttribute('open', '');
+            });
+        }
+    }
+});
+setupTabs('.sub-tabs li', '.sub-view');
 setupTabs('#character-modal .modal-tabs li', '#character-modal .form-tab');
 setupTabs('#view-modal .modal-tabs li', '#view-modal .v-tab');
 
@@ -165,13 +222,8 @@ function openCropModal(imageSrc, target, ratio) {
     const img = document.getElementById('crop-image-target');
     img.src = imageSrc;
     document.getElementById('crop-modal').style.display = 'block';
-
     if (cropper) cropper.destroy();
-    cropper = new Cropper(img, {
-        aspectRatio: ratio,
-        viewMode: 1,
-        autoCropArea: 1,
-    });
+    cropper = new Cropper(img, { aspectRatio: ratio, viewMode: 1, autoCropArea: 1 });
 }
 
 document.getElementById('cancel-crop-btn').onclick = () => {
@@ -179,6 +231,7 @@ document.getElementById('cancel-crop-btn').onclick = () => {
     if(currentCropTarget === 'group') document.getElementById('group-image').value = "";
     if(currentCropTarget === 'cover') document.getElementById('char-image').value = "";
     if(currentCropTarget === 'profile') document.getElementById('char-profile-image').value = "";
+    if(currentCropTarget === 'story') document.getElementById('story-image').value = "";
 };
 
 document.getElementById('confirm-crop-btn').onclick = () => {
@@ -199,109 +252,107 @@ document.getElementById('confirm-crop-btn').onclick = () => {
             document.getElementById('char-profile-file-name').innerText = "รูปโปรไฟล์ถูกครอบตัดแล้ว";
             document.getElementById('clear-char-profile-btn').style.display = "inline-block";
             charProfileRemoved = false;
+        } else if (currentCropTarget === 'story') {
+            croppedStoryBlob = blob;
+            document.getElementById('story-file-name').innerText = "รูปภาพถูกครอบตัดแล้ว";
+            document.getElementById('clear-story-img-btn').style.display = "inline-block";
+            storyImgRemoved = false;
         }
         document.getElementById('crop-modal').style.display = 'none';
     }, 'image/png', 0.9);
 };
 
-const grpImgInput = document.getElementById('group-image');
-const grpImgClearBtn = document.getElementById('clear-group-img-btn');
-const grpFileName = document.getElementById('group-file-name');
+function setupImageInput(inputId, clearBtnId, fileNameId, targetType, ratio) {
+    const input = document.getElementById(inputId);
+    const clearBtn = document.getElementById(clearBtnId);
+    const fileName = document.getElementById(fileNameId);
 
-grpImgInput.addEventListener('change', function(e) {
-    if (this.files && this.files.length > 0) {
-        const reader = new FileReader();
-        reader.onload = (e) => openCropModal(e.target.result, 'group', 1/1);
-        reader.readAsDataURL(this.files[0]);
-    }
-});
-grpImgClearBtn.addEventListener('click', () => {
-    grpImgInput.value = "";
-    croppedGroupBlob = null;
-    grpFileName.innerText = "ไม่ได้เลือกไฟล์";
-    grpImgClearBtn.style.display = "none";
-    groupImgRemoved = true;
-});
+    input.addEventListener('change', function(e) {
+        if (this.files && this.files.length > 0) {
+            const reader = new FileReader();
+            reader.onload = (e) => openCropModal(e.target.result, targetType, ratio);
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+    clearBtn.addEventListener('click', () => {
+        input.value = "";
+        if (targetType === 'group') { croppedGroupBlob = null; groupImgRemoved = true; }
+        if (targetType === 'cover') { croppedCoverBlob = null; charImgRemoved = true; }
+        if (targetType === 'profile') { croppedProfileBlob = null; charProfileRemoved = true; }
+        if (targetType === 'story') { croppedStoryBlob = null; storyImgRemoved = true; }
+        fileName.innerText = "ไม่ได้เลือกไฟล์";
+        clearBtn.style.display = "none";
+    });
+}
 
-const charImgInput = document.getElementById('char-image');
-const charImgClearBtn = document.getElementById('clear-char-img-btn');
-const charFileName = document.getElementById('char-file-name');
-
-charImgInput.addEventListener('change', function(e) {
-    if (this.files && this.files.length > 0) {
-        const reader = new FileReader();
-        reader.onload = (e) => openCropModal(e.target.result, 'cover', 140/220);
-        reader.readAsDataURL(this.files[0]);
-    }
-});
-charImgClearBtn.addEventListener('click', () => {
-    charImgInput.value = "";
-    croppedCoverBlob = null;
-    charFileName.innerText = "ไม่ได้เลือกไฟล์";
-    charImgClearBtn.style.display = "none";
-    charImgRemoved = true;
-});
-
-const charProfileInput = document.getElementById('char-profile-image');
-const charProfileClearBtn = document.getElementById('clear-char-profile-btn');
-const charProfileFileName = document.getElementById('char-profile-file-name');
-
-charProfileInput.addEventListener('change', function(e) {
-    if (this.files && this.files.length > 0) {
-        const reader = new FileReader();
-        reader.onload = (e) => openCropModal(e.target.result, 'profile', 1/1);
-        reader.readAsDataURL(this.files[0]);
-    }
-});
-charProfileClearBtn.addEventListener('click', () => {
-    charProfileInput.value = "";
-    croppedProfileBlob = null;
-    charProfileFileName.innerText = "ไม่ได้เลือกไฟล์";
-    charProfileClearBtn.style.display = "none";
-    charProfileRemoved = true;
-});
+setupImageInput('group-image', 'clear-group-img-btn', 'group-file-name', 'group', 1/1);
+setupImageInput('char-image', 'clear-char-img-btn', 'char-file-name', 'cover', 140/220);
+setupImageInput('char-profile-image', 'clear-char-profile-btn', 'char-profile-file-name', 'profile', 1/1);
+setupImageInput('story-image', 'clear-story-img-btn', 'story-file-name', 'story', 2.5/1);
 
 const groupModal = document.getElementById('group-modal');
 const insideGroupModal = document.getElementById('inside-group-modal');
 const charFormModal = document.getElementById('character-modal');
 const viewModal = document.getElementById('view-modal');
+const storyCardModal = document.getElementById('story-card-modal');
+const storyContentModal = document.getElementById('story-content-modal');
 
 document.getElementById('add-btn').onclick = () => {
-    editingGroupId = null;
-    document.getElementById('group-form').reset();
-    document.getElementById('group-modal-title').innerText = "สร้างไอคอนกลุ่ม/หอใหม่";
-    grpFileName.innerText = "ไม่ได้เลือกไฟล์";
-    grpImgClearBtn.style.display = "none";
-    groupImgRemoved = false;
-    croppedGroupBlob = null;
-    groupModal.style.display = "block";
+    const activeTab = document.querySelector('.main-tabs li.active').dataset.target;
+    
+    if (activeTab === 'characters-view') {
+        editingGroupId = null;
+        document.getElementById('group-form').reset();
+        document.getElementById('group-modal-title').innerText = "สร้างไอคอนกลุ่ม/หอใหม่";
+        document.getElementById('group-file-name').innerText = "ไม่ได้เลือกไฟล์";
+        document.getElementById('clear-group-img-btn').style.display = "none";
+        groupImgRemoved = false;
+        croppedGroupBlob = null;
+        groupModal.style.display = "block";
+    } else if (activeTab === 'story-view') {
+        editingStoryId = null;
+        document.getElementById('story-card-form').reset();
+        document.getElementById('story-card-title').innerText = "สร้างสตอรี่ใหม่";
+        document.getElementById('story-file-name').innerText = "ไม่ได้เลือกไฟล์";
+        document.getElementById('clear-story-img-btn').style.display = "none";
+        storyImgRemoved = false;
+        croppedStoryBlob = null;
+        
+        const activeSubTab = document.querySelector('#story-view .sub-tabs li.active');
+        if(activeSubTab) document.getElementById('story-category').value = activeSubTab.innerText.trim();
+        
+        storyCardModal.style.display = "block";
+    }
 };
 
 document.getElementById('add-char-btn').onclick = () => {
     editingCharacterId = null;
     document.getElementById('character-form').reset();
     document.getElementById('form-modal-title').innerText = "เพิ่มข้อมูลตัวละคร";
-    charFileName.innerText = "ไม่ได้เลือกไฟล์";
-    charImgClearBtn.style.display = "none";
-    charProfileFileName.innerText = "ไม่ได้เลือกไฟล์";
-    charProfileClearBtn.style.display = "none";
+    document.getElementById('char-file-name').innerText = "ไม่ได้เลือกไฟล์";
+    document.getElementById('clear-char-img-btn').style.display = "none";
+    document.getElementById('char-profile-file-name').innerText = "ไม่ได้เลือกไฟล์";
+    document.getElementById('clear-char-profile-btn').style.display = "none";
     charImgRemoved = false;
     charProfileRemoved = false;
     croppedCoverBlob = null;
     croppedProfileBlob = null;
+    
+    const firstTab = charFormModal.querySelector('.modal-tabs li:first-child');
+    if(firstTab) firstTab.click();
+    charFormModal.querySelector('.modal-content').scrollTop = 0;
+    
     charFormModal.style.display = "block";
 };
 
-document.getElementById('close-group-modal').onclick = () => groupModal.style.display = "none";
-document.getElementById('close-inside-group-btn').onclick = () => insideGroupModal.style.display = "none";
-document.getElementById('close-form-btn').onclick = () => charFormModal.style.display = "none";
-document.getElementById('close-view-btn').onclick = () => viewModal.style.display = "none";
+document.querySelectorAll('.modal .close-btn, .modal .group-close-btn, #close-story-content-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.target.closest('.modal').style.display = "none";
+    });
+});
 
 window.onclick = (e) => {
-    if (e.target == groupModal) groupModal.style.display = "none";
-    if (e.target == insideGroupModal) insideGroupModal.style.display = "none";
-    if (e.target == charFormModal) charFormModal.style.display = "none";
-    if (e.target == viewModal) viewModal.style.display = "none";
+    if (e.target.classList.contains('modal')) e.target.style.display = "none";
 };
 
 async function fetchGroups() {
@@ -317,26 +368,19 @@ async function fetchGroups() {
         let groups = [];
         snap.forEach(doc => {
             const data = doc.data();
-            const order = data.order ?? data.timestamp ?? 0;
-            groups.push({ id: doc.id, data: data, order: order });
+            groups.push({ id: doc.id, data: data, order: data.order ?? data.timestamp ?? 0 });
         });
         groups.sort((a, b) => a.order - b.order); 
 
         groups.forEach((groupItem, index) => {
-            const id = groupItem.id;
-            const data = groupItem.data;
+            const { id, data } = groupItem;
             const imgUrl = data.image ? data.image : TRANSPARENT_GROUP_PLACEHOLDER;
-
             const card = document.createElement('div');
             card.className = 'group-card';
             card.style.animationDelay = `${index * 0.05}s`;
             card.draggable = true;
             card.dataset.id = id;
-
-            card.innerHTML = `
-                <img src="${imgUrl}" class="group-img">
-                <div class="group-name">${data.name}</div>
-            `;
+            card.innerHTML = `<img src="${imgUrl}" class="group-img"><div class="group-name">${data.name}</div>`;
 
             card.addEventListener('dragstart', (e) => {
                 draggedGroupNode = card;
@@ -346,10 +390,7 @@ async function fetchGroups() {
             card.addEventListener('dragend', () => {
                 card.classList.remove('dragging');
                 draggedGroupNode = null;
-                
-                const parent = card.parentNode;
-                const allCards = parent.querySelectorAll('.group-card');
-                allCards.forEach((c, i) => {
+                card.parentNode.querySelectorAll('.group-card').forEach((c, i) => {
                     updateDoc(doc(db, "groups", c.dataset.id), { order: i });
                 });
             });
@@ -358,7 +399,6 @@ async function fetchGroups() {
                 currentGroupId = id;
                 currentGroupName = data.name;
                 currentGroupCategory = data.category;
-                
                 document.getElementById('inside-group-title').innerText = data.name;
                 insideGroupModal.style.display = "block";
                 fetchCharactersInGroup(id);
@@ -367,9 +407,7 @@ async function fetchGroups() {
             if(data.category === 'NRC') nrcGrid.appendChild(card);
             else rsaGrid.appendChild(card);
         });
-    } catch (error) {
-        console.error(error);
-    }
+    } catch (error) { console.error(error); }
 }
 
 document.getElementById('edit-group-btn').onclick = async () => {
@@ -379,19 +417,22 @@ document.getElementById('edit-group-btn').onclick = async () => {
     document.getElementById('group-name').value = currentGroupName;
     document.getElementById('group-category').value = currentGroupCategory;
     
-    grpImgInput.value = "";
+    const grpImgInputLocal = document.getElementById('group-image');
+    const grpImgClearBtnLocal = document.getElementById('clear-group-img-btn');
+    const grpFileNameLocal = document.getElementById('group-file-name');
+
+    grpImgInputLocal.value = "";
     groupImgRemoved = false;
     croppedGroupBlob = null;
-    grpFileName.innerText = "ไม่ได้เลือกไฟล์";
+    grpFileNameLocal.innerText = "ไม่ได้เลือกไฟล์";
     
     const docSnap = await getDoc(doc(db, "groups", currentGroupId));
     if (docSnap.exists() && docSnap.data().image) {
-        grpFileName.innerText = getFileNameFromUrl(docSnap.data().image);
-        grpImgClearBtn.style.display = "inline-block";
+        grpFileNameLocal.innerText = getFileNameFromUrl(docSnap.data().image);
+        grpImgClearBtnLocal.style.display = "inline-block";
     } else {
-        grpImgClearBtn.style.display = "none";
+        grpImgClearBtnLocal.style.display = "none";
     }
-    
     groupModal.style.display = "block";
 };
 
@@ -433,7 +474,6 @@ document.getElementById('group-form').onsubmit = async (e) => {
             groupData.order = Date.now();
             await addDoc(collection(db, "groups"), groupData);
         }
-        
         groupModal.style.display = "none";
         fetchGroups();
         showToast("บันทึกกลุ่มสำเร็จ!");
@@ -442,6 +482,26 @@ document.getElementById('group-form').onsubmit = async (e) => {
     btn.disabled = false; loading.style.display = "none";
 };
 
+function renderViewField(type, wrapId, textId, value, bullet = '') {
+    const wrap = document.getElementById(wrapId);
+    if (!value || (Array.isArray(value) && value.length === 0) || (typeof value === 'string' && value.trim() === "")) {
+        wrap.style.display = "none";
+    } else {
+        if (type === 'block') wrap.style.display = "block";
+        else wrap.style.display = "grid";
+        
+        if (Array.isArray(value)) {
+            if (value.length === 1) {
+                document.getElementById(textId).innerHTML = formatText(value[0]);
+            } else {
+                document.getElementById(textId).innerHTML = value.map(i => `${bullet} ${formatText(i)}`).join('<br>');
+            }
+        } else {
+            document.getElementById(textId).innerHTML = formatText(value);
+        }
+    }
+}
+
 async function fetchCharactersInGroup(groupId) {
     const grid = document.getElementById('character-grid');
     grid.innerHTML = ''; 
@@ -449,28 +509,18 @@ async function fetchCharactersInGroup(groupId) {
     try {
         const q = query(collection(db, "characters"), where("groupId", "==", groupId));
         const snap = await getDocs(q);
-
         if(snap.empty) return; 
 
         let chars = [];
         snap.forEach(doc => {
             const data = doc.data();
-            const order = data.order ?? data.timestamp ?? 0;
-            
-            chars.push({ 
-                id: doc.id, 
-                order: order,
-                name: data.name,
-                coverImage: data.coverImage
-            });
+            chars.push({ id: doc.id, order: data.order ?? data.timestamp ?? 0, name: data.name, coverImage: data.coverImage });
         });
         chars.sort((a, b) => a.order - b.order); 
 
         chars.forEach((charItem) => {
-            const id = charItem.id;
-            const name = charItem.name;
-            const imgUrl = charItem.coverImage ? charItem.coverImage : COVER_PLACEHOLDER;
-
+            const { id, name, coverImage } = charItem;
+            const imgUrl = coverImage || COVER_PLACEHOLDER;
             const card = document.createElement('div');
             card.className = 'char-card';
             card.draggable = true;
@@ -492,10 +542,7 @@ async function fetchCharactersInGroup(groupId) {
             card.addEventListener('dragend', () => {
                 card.classList.remove('dragging');
                 draggedCharNode = null;
-                
-                const parent = card.parentNode;
-                const allCards = parent.querySelectorAll('.char-card');
-                allCards.forEach((c, i) => {
+                card.parentNode.querySelectorAll('.char-card').forEach((c, i) => {
                     updateDoc(doc(db, "characters", c.dataset.id), { order: i });
                 });
             });
@@ -510,7 +557,6 @@ async function fetchCharactersInGroup(groupId) {
 
             card.querySelector('.edit').onclick = async (e) => {
                 e.stopPropagation();
-                
                 try {
                     const docSnap = await getDoc(doc(db, "characters", id));
                     if (!docSnap.exists()) return;
@@ -519,64 +565,33 @@ async function fetchCharactersInGroup(groupId) {
                     editingCharacterId = id;
                     document.getElementById('form-modal-title').innerText = "แก้ไขข้อมูลตัวละคร";
                     
-                    document.getElementById('char-name').value = data.name || '';
-                    document.getElementById('char-jp-name').value = data.jpName || '';
-                    document.getElementById('char-aliases').value = (data.aliases || []).join('\n');
-                    document.getElementById('char-year').value = data.year || '';
-                    document.getElementById('char-bday').value = data.birthday || '';
-                    document.getElementById('char-zodiac').value = data.zodiac || '';
-                    document.getElementById('char-age').value = data.age || '';
-                    document.getElementById('char-height').value = data.height || '';
-                    document.getElementById('char-hand').value = data.dominantHand || '';
-                    document.getElementById('char-homeland').value = data.homeland || '';
-                    document.getElementById('char-city').value = data.city || '';
-                    
-                    document.getElementById('char-occupation').value = data.occupation || '';
-                    document.getElementById('char-position').value = data.position || '';
-                    
-                    document.getElementById('char-club').value = data.club || '';
-                    document.getElementById('char-subject').value = data.bestSubject || '';
-                    document.getElementById('char-hobby').value = data.hobby || '';
-                    document.getElementById('char-dislikes').value = data.dislikes || '';
-                    document.getElementById('char-fav-food').value = data.favFood || '';
-                    document.getElementById('char-dislike-food').value = data.dislikeFood || '';
-                    document.getElementById('char-talent').value = data.specialTalent || '';
-                    document.getElementById('char-va').value = data.va || '';
-                    document.getElementById('char-spell-name').value = data.spellName || '';
-                    document.getElementById('char-spell-desc').value = data.spellDesc || '';
-                    document.getElementById('char-pronouns').value = (data.pronouns || []).join('\n');
-                    document.getElementById('char-personality').value = data.personality || '';
-                    document.getElementById('char-relationships').value = (data.relationships || []).join('\n');
-                    document.getElementById('char-history').value = data.history || '';
-                    document.getElementById('char-trivia').value = (data.trivia || []).join('\n');
+                    charFieldsConfig.forEach(f => {
+                        const el = document.getElementById(f.id);
+                        if (f.type === 'array') el.value = (data[f.key] || []).join('\n');
+                        else el.value = data[f.key] || '';
+                    });
 
-                    charImgInput.value = ""; charImgRemoved = false; croppedCoverBlob = null;
-                    if(data.coverImage) { 
-                        charFileName.innerText = getFileNameFromUrl(data.coverImage); 
-                        charImgClearBtn.style.display = "inline-block"; 
-                    } else { 
-                        charFileName.innerText = "ไม่ได้เลือกไฟล์"; 
-                        charImgClearBtn.style.display = "none"; 
-                    }
+                    document.getElementById('char-image').value = ""; charImgRemoved = false; croppedCoverBlob = null;
+                    const cName = document.getElementById('char-file-name');
+                    const cClear = document.getElementById('clear-char-img-btn');
+                    if(data.coverImage) { cName.innerText = getFileNameFromUrl(data.coverImage); cClear.style.display = "inline-block"; } 
+                    else { cName.innerText = "ไม่ได้เลือกไฟล์"; cClear.style.display = "none"; }
 
-                    charProfileInput.value = ""; charProfileRemoved = false; croppedProfileBlob = null;
-                    if(data.profileImage) { 
-                        charProfileFileName.innerText = getFileNameFromUrl(data.profileImage); 
-                        charProfileClearBtn.style.display = "inline-block"; 
-                    } else { 
-                        charProfileFileName.innerText = "ไม่ได้เลือกไฟล์"; 
-                        charProfileClearBtn.style.display = "none"; 
-                    }
+                    document.getElementById('char-profile-image').value = ""; charProfileRemoved = false; croppedProfileBlob = null;
+                    const pName = document.getElementById('char-profile-file-name');
+                    const pClear = document.getElementById('clear-char-profile-btn');
+                    if(data.profileImage) { pName.innerText = getFileNameFromUrl(data.profileImage); pClear.style.display = "inline-block"; } 
+                    else { pName.innerText = "ไม่ได้เลือกไฟล์"; pClear.style.display = "none"; }
+
+                    const firstTab = charFormModal.querySelector('.modal-tabs li:first-child');
+                    if(firstTab) firstTab.click();
+                    charFormModal.querySelector('.modal-content').scrollTop = 0;
 
                     charFormModal.style.display = "block";
-                } catch (err) {
-                    console.error(err);
-                    alert("เกิดข้อผิดพลาดในการดึงข้อมูล");
-                }
+                } catch (err) { console.error(err); alert("เกิดข้อผิดพลาดในการดึงข้อมูล"); }
             };
 
             card.onclick = async () => {
-                
                 try {
                     const docSnap = await getDoc(doc(db, "characters", id));
                     if (!docSnap.exists()) return;
@@ -588,55 +603,16 @@ async function fetchCharactersInGroup(groupId) {
                         document.getElementById('view-img').src = data.profileImage;
                     } else {
                         viewLeft.style.display = "none";
-                        document.getElementById('view-img').src = "";
                     }
 
                     document.getElementById('view-name-top').innerText = data.name;
-
-                    const setField = (wrapId, textId, value) => {
-                        const wrap = document.getElementById(wrapId);
-                        if (!value || value.trim() === "") wrap.style.display = "none";
-                        else { wrap.style.display = "grid"; document.getElementById(textId).innerHTML = formatText(value); }
-                    };
-
-                    const setArrayField = (wrapId, textId, valueArr, bullet = '•', checkLength = false) => {
-                        const wrap = document.getElementById(wrapId);
-                        if (!valueArr || valueArr.length === 0 || valueArr.every(i => i.trim() === "")) wrap.style.display = "none";
-                        else {
-                            wrap.style.display = "grid";
-                            if (checkLength && valueArr.length === 1) {
-                                document.getElementById(textId).innerHTML = formatText(valueArr[0]);
-                            } else {
-                                document.getElementById(textId).innerHTML = valueArr.map(i => `${bullet} ${formatText(i)}`).join('<br>');
-                            }
-                        }
-                    };
-
                     document.getElementById('view-name-inside').innerText = data.name;
                     const jpNameEl = document.getElementById('view-jp-name-inside');
                     if (data.jpName) { jpNameEl.innerText = data.jpName; jpNameEl.style.display = "block"; } else jpNameEl.style.display = "none";
 
-                    setArrayField('wrap-view-aliases', 'view-aliases', data.aliases, '•', true);
-                    setField('wrap-view-year', 'view-year', data.year);
-                    setField('wrap-view-bday', 'view-bday', data.birthday);
-                    setField('wrap-view-zodiac', 'view-zodiac', data.zodiac);
-                    setField('wrap-view-age', 'view-age', data.age);
-                    setField('wrap-view-height', 'view-height', data.height);
-                    setField('wrap-view-hand', 'view-hand', data.dominantHand);
-                    setField('wrap-view-homeland', 'view-homeland', data.homeland);
-                    setField('wrap-view-city', 'view-city', data.city);
-                    
-                    setField('wrap-view-occupation', 'view-occupation', data.occupation);
-                    setField('wrap-view-position', 'view-position', data.position);
-                    
-                    setField('wrap-view-club', 'view-club', data.club);
-                    setField('wrap-view-subject', 'view-subject', data.bestSubject);
-                    setField('wrap-view-hobby', 'view-hobby', data.hobby);
-                    setField('wrap-view-dislikes', 'view-dislikes', data.dislikes);
-                    setField('wrap-view-fav-food', 'view-fav-food', data.favFood);
-                    setField('wrap-view-dislike-food', 'view-dislike-food', data.dislikeFood);
-                    setField('wrap-view-talent', 'view-talent', data.specialTalent);
-                    setField('wrap-view-va', 'view-va', data.va);
+                    viewFieldsConfig.forEach(f => {
+                        renderViewField(f.type, f.idWrap, f.idText, data[f.key], f.bullet);
+                    });
 
                     const spellWrap = document.getElementById('wrap-view-spell');
                     if (!data.spellName && !data.spellDesc) spellWrap.style.display = "none";
@@ -648,43 +624,17 @@ async function fetchCharactersInGroup(groupId) {
                         document.getElementById('view-spell-content').innerHTML = h;
                     }
 
-                    const pronounsWrap = document.getElementById('wrap-view-pronouns');
-                    if (!data.pronouns || data.pronouns.length === 0 || data.pronouns.every(i => i.trim() === "")) pronounsWrap.style.display = "none";
-                    else {
-                        pronounsWrap.style.display = "block";
-                        document.getElementById('view-pronouns').innerHTML = data.pronouns.map(i => `◆ ${formatText(i)}`).join('<br>');
-                    }
+                    renderViewField('block', 'wrap-view-pronouns', 'view-pronouns', data.pronouns, '');
+                    renderViewField('block', 'wrap-view-relationships', 'view-relationships', data.relationships, '•');
+                    renderViewField('block', 'wrap-view-trivia', 'view-trivia', data.trivia, '<span style="font-size:0.75rem;">◆</span>');
 
-                    const setBlockField = (wrapId, textId, value) => {
-                        const wrap = document.getElementById(wrapId);
-                        if (!value || value.trim() === "") wrap.style.display = "none";
-                        else { wrap.style.display = "block"; document.getElementById(textId).innerHTML = formatText(value); }
-                    };
-
-                    setBlockField('wrap-view-personality', 'view-personality', data.personality);
-                    setBlockField('wrap-view-history', 'view-history', data.history);
-                    
-                    const relWrap = document.getElementById('wrap-view-relationships');
-                    if (!data.relationships || data.relationships.length === 0 || data.relationships.every(i => i.trim() === "")) relWrap.style.display = "none";
-                    else {
-                        relWrap.style.display = "block";
-                        document.getElementById('view-relationships').innerHTML = data.relationships.map(i => `• ${formatText(i)}`).join('<br>');
-                    }
-                    
-                    const triviaWrap = document.getElementById('wrap-view-trivia');
-                    if (!data.trivia || data.trivia.length === 0 || data.trivia.every(i => i.trim() === "")) triviaWrap.style.display = "none";
-                    else {
-                        triviaWrap.style.display = "block";
-                        document.getElementById('view-trivia').innerHTML = data.trivia.map(i => `◆ ${formatText(i)}`).join('<br>');
-                    }
+                    const firstTab = viewModal.querySelector('.modal-tabs li:first-child');
+                    if(firstTab) firstTab.click();
+                    viewModal.querySelector('.modal-content').scrollTop = 0;
 
                     viewModal.style.display = "block";
-                } catch (err) {
-                    console.error(err);
-                    alert("เกิดข้อผิดพลาดในการดึงข้อมูลตัวละคร");
-                }
+                } catch (err) { console.error(err); alert("เกิดข้อผิดพลาดในการดึงข้อมูลตัวละคร"); }
             };
-
             grid.appendChild(card);
         });
     } catch(e) { console.error(e); }
@@ -698,54 +648,22 @@ document.getElementById('character-form').onsubmit = async (e) => {
     const load = document.getElementById('loading-text');
     btn.disabled = true; load.style.display = "inline";
 
-    const charData = {
-        groupId: currentGroupId,
-        name: document.getElementById('char-name').value,
-        jpName: document.getElementById('char-jp-name').value,
-        aliases: textToArray(document.getElementById('char-aliases').value),
-        year: document.getElementById('char-year').value,
-        birthday: document.getElementById('char-bday').value,
-        zodiac: document.getElementById('char-zodiac').value,
-        age: document.getElementById('char-age').value,
-        height: document.getElementById('char-height').value,
-        dominantHand: document.getElementById('char-hand').value,
-        homeland: document.getElementById('char-homeland').value,
-        city: document.getElementById('char-city').value,
-        
-        occupation: document.getElementById('char-occupation').value,
-        position: document.getElementById('char-position').value,
-        
-        club: document.getElementById('char-club').value,
-        bestSubject: document.getElementById('char-subject').value,
-        hobby: document.getElementById('char-hobby').value,
-        dislikes: document.getElementById('char-dislikes').value,
-        favFood: document.getElementById('char-fav-food').value,
-        dislikeFood: document.getElementById('char-dislike-food').value,
-        specialTalent: document.getElementById('char-talent').value,
-        va: document.getElementById('char-va').value,
-        spellName: document.getElementById('char-spell-name').value,
-        spellDesc: document.getElementById('char-spell-desc').value,
-        pronouns: textToArray(document.getElementById('char-pronouns').value),
-        personality: document.getElementById('char-personality').value,
-        relationships: textToArray(document.getElementById('char-relationships').value),
-        history: document.getElementById('char-history').value,
-        trivia: textToArray(document.getElementById('char-trivia').value),
-        timestamp: new Date()
-    };
+    const charData = { groupId: currentGroupId, timestamp: new Date() };
+    
+    charFieldsConfig.forEach(f => {
+        const val = document.getElementById(f.id).value;
+        charData[f.key] = f.type === 'array' ? textToArray(val) : val;
+    });
 
     if (croppedCoverBlob) {
         const coverUrl = await uploadImageToCloudinary(croppedCoverBlob);
         if(coverUrl) charData.coverImage = coverUrl;
-    } else if (charImgRemoved) {
-        charData.coverImage = deleteField();
-    }
+    } else if (charImgRemoved) charData.coverImage = deleteField();
     
     if (croppedProfileBlob) {
         const profileUrl = await uploadImageToCloudinary(croppedProfileBlob);
         if(profileUrl) charData.profileImage = profileUrl;
-    } else if (charProfileRemoved) {
-        charData.profileImage = deleteField();
-    }
+    } else if (charProfileRemoved) charData.profileImage = deleteField();
 
     try {
         if (editingCharacterId) {
@@ -754,13 +672,302 @@ document.getElementById('character-form').onsubmit = async (e) => {
             charData.order = Date.now(); 
             await addDoc(collection(db, "characters"), charData);
         }
-
         charFormModal.style.display = "none";
         fetchCharactersInGroup(currentGroupId);
         showToast("บันทึกตัวละครสำเร็จ!");
     } catch(err) { console.error(err); }
 
     btn.disabled = false; load.style.display = "none";
+};
+
+async function fetchStories() {
+    const mainGrid = document.getElementById('main-story-grid');
+    const eventGrid = document.getElementById('events-story-grid');
+    mainGrid.innerHTML = '';
+    eventGrid.innerHTML = '';
+
+    try {
+        const snap = await getDocs(collection(db, "stories"));
+        if(snap.empty) return; 
+
+        let stories = [];
+        snap.forEach(doc => {
+            const data = doc.data();
+            stories.push({ id: doc.id, data: data, order: data.order ?? data.timestamp ?? 0 });
+        });
+        stories.sort((a, b) => a.order - b.order); 
+
+        stories.forEach(storyItem => {
+            const { id, data } = storyItem;
+            const imgUrl = data.image ? data.image : STORY_PLACEHOLDER;
+
+            const card = document.createElement('div');
+            card.className = 'story-card';
+            card.draggable = true;
+            card.dataset.id = id;
+
+            card.innerHTML = `
+                <img src="${imgUrl}" class="story-img">
+                <div class="story-name">${data.name}</div>
+                <div class="card-actions">
+                    <button class="action-btn edit" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                    <button class="action-btn delete" title="ลบ"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+
+            card.addEventListener('dragstart', (e) => {
+                draggedStoryNode = card;
+                card.classList.add('dragging');
+                e.dataTransfer.effectAllowed = "move";
+            });
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+                draggedStoryNode = null;
+                card.parentNode.querySelectorAll('.story-card').forEach((c, i) => {
+                    updateDoc(doc(db, "stories", c.dataset.id), { order: i });
+                });
+            });
+
+            card.querySelector('.delete').onclick = async (e) => {
+                e.stopPropagation();
+                if(confirm('ยืนยันลบสตอรี่นี้?')) {
+                    await deleteDoc(doc(db, "stories", id));
+                    fetchStories();
+                    showToast("ลบสตอรี่เรียบร้อย");
+                }
+            };
+
+            card.querySelector('.edit').onclick = async (e) => {
+                e.stopPropagation();
+                editingStoryId = id;
+                document.getElementById('story-card-title').innerText = "แก้ไขข้อมูลสตอรี่";
+                document.getElementById('story-name').value = data.name || '';
+                document.getElementById('story-category').value = data.category || 'Main Story';
+
+                const sName = document.getElementById('story-file-name');
+                const sClear = document.getElementById('clear-story-img-btn');
+                document.getElementById('story-image').value = ""; 
+                storyImgRemoved = false; 
+                croppedStoryBlob = null;
+                
+                if(data.image) { 
+                    sName.innerText = getFileNameFromUrl(data.image); 
+                    sClear.style.display = "inline-block"; 
+                } else { 
+                    sName.innerText = "ไม่ได้เลือกไฟล์"; 
+                    sClear.style.display = "none"; 
+                }
+                storyCardModal.style.display = "block";
+            };
+
+            card.onclick = () => {
+                editingStoryId = id;
+                document.getElementById('story-content-header').innerText = data.name;
+                currentStoryContent = data.content || "<p>พิมพ์เนื้อหาสตอรี่ที่นี่...</p>";
+                
+                const { html } = parseWorldContent(currentStoryContent);
+                const displayArea = document.getElementById('story-display');
+                displayArea.innerHTML = html;
+                
+                displayArea.querySelectorAll('details.world-toggle').forEach(details => {
+                    details.removeAttribute('open');
+                });
+                
+                document.getElementById('story-editor').style.display = 'none';
+                document.getElementById('story-toolbar').style.display = 'none';
+                displayArea.style.display = 'block';
+                
+                storyContentModal.style.display = "block";
+            };
+
+            if(data.category === 'Main Story') mainGrid.appendChild(card);
+            else eventGrid.appendChild(card);
+        });
+    } catch (error) { console.error(error); }
+}
+
+document.getElementById('story-card-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-story-btn');
+    const loading = document.getElementById('story-loading-text');
+    btn.disabled = true; loading.style.display = "inline";
+
+    const storyData = {
+        name: document.getElementById('story-name').value,
+        category: document.getElementById('story-category').value
+    };
+
+    if (croppedStoryBlob) {
+        const imageUrl = await uploadImageToCloudinary(croppedStoryBlob);
+        if(imageUrl) storyData.image = imageUrl;
+    } else if (storyImgRemoved) {
+        storyData.image = deleteField();
+    }
+
+    try {
+        if (editingStoryId) {
+            await updateDoc(doc(db, "stories", editingStoryId), storyData);
+        } else {
+            storyData.order = Date.now();
+            await addDoc(collection(db, "stories"), storyData);
+        }
+        storyCardModal.style.display = "none";
+        fetchStories();
+        showToast("บันทึกสตอรี่สำเร็จ!");
+    } catch (e) { console.error(e); }
+
+    btn.disabled = false; loading.style.display = "none";
+};
+
+function setupRichEditor(editorId, displayId, toolbarId, saveBtnId, cancelBtnId, imgBtnId, imgInputId, dashedBtnId, toggleBtnId) {
+    const editor = document.getElementById(editorId);
+    const display = document.getElementById(displayId);
+    const toolbar = document.getElementById(toolbarId);
+    const imgInput = document.getElementById(imgInputId);
+    
+    document.getElementById(dashedBtnId).onclick = () => {
+        editor.focus();
+        document.execCommand('insertHTML', false, '<hr class="dashed-hr"><p>&nbsp;</p>');
+    };
+
+    document.getElementById(cancelBtnId).onclick = () => {
+        editor.style.display = 'none';
+        toolbar.style.display = 'none';
+        display.style.display = 'block';
+        window.scrollTo(0, 0);
+    };
+
+    document.getElementById(imgBtnId).onclick = () => imgInput.click();
+    imgInput.onchange = async (e) => {
+        if (e.target.files.length > 0) {
+            const loadingSpan = toolbar.querySelector('.action-group span');
+            if(loadingSpan) loadingSpan.style.display = "inline";
+            const url = await uploadImageToCloudinary(e.target.files[0]);
+            if (url) { 
+                editor.focus(); 
+                const imgHtml = `<span class="resize-wrapper" contenteditable="false"><img src="${url}" class="resizing-img"></span>`;
+                document.execCommand('insertHTML', false, imgHtml); 
+            }
+            if(loadingSpan) loadingSpan.style.display = "none";
+            imgInput.value = "";
+        }
+    };
+
+    document.getElementById(toggleBtnId).onclick = () => {
+        editor.focus();
+        const toggleHTML = `<div class="toggle-wrapper" contenteditable="false"><span class="drag-handle" title="ลากสลับที่" contenteditable="false">☰</span><details class="world-toggle" open><summary><span class="toggle-icon" title="เปิด/ปิด">‣</span>&nbsp;<span class="toggle-title" contenteditable="true" data-placeholder="พิมพ์หัวข้อที่นี่..."></span><button contenteditable="false" class="delete-toggle-btn" title="ลบกล่องนี้">&times;</button></summary><div class="toggle-content" contenteditable="true" data-placeholder="พิมพ์เนื้อหาที่นี่..."></div></details></div><p>&nbsp;</p>`;
+        document.execCommand('insertHTML', false, toggleHTML);
+    };
+    
+    toolbar.querySelectorAll('.color-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.execCommand('foreColor', false, btn.dataset.color);
+            editor.focus();
+        };
+    });
+}
+
+setupRichEditor('story-editor', 'story-display', 'story-toolbar', 'save-story-content-btn', 'cancel-story-content-btn', 'btn-story-image', 'story-image-input', 'btn-story-dashed-line', 'btn-story-toggle');
+
+document.getElementById('story-display').addEventListener('dblclick', () => {
+    const display = document.getElementById('story-display');
+    const editor = document.getElementById('story-editor');
+    const toolbar = document.getElementById('story-toolbar');
+    
+    display.style.display = 'none';
+    editor.style.display = 'block';
+    toolbar.style.display = 'flex';
+    
+    const temp = document.createElement('div');
+    temp.innerHTML = currentStoryContent;
+    
+    temp.querySelectorAll('.world-toggle').forEach(toggle => {
+        let wrapper = toggle.parentElement;
+        if (!wrapper || !wrapper.classList.contains('toggle-wrapper')) {
+            wrapper = document.createElement('div');
+            wrapper.className = 'toggle-wrapper';
+            wrapper.setAttribute('contenteditable', 'false');
+            toggle.parentNode.insertBefore(wrapper, toggle);
+            wrapper.appendChild(toggle);
+        } else {
+            wrapper.setAttribute('contenteditable', 'false');
+        }
+
+        if(!wrapper.querySelector('.drag-handle')) {
+            const handle = document.createElement('span');
+            handle.className = 'drag-handle';
+            handle.title = 'ลากสลับที่';
+            handle.setAttribute('contenteditable', 'false');
+            handle.innerText = '☰';
+            wrapper.insertBefore(handle, toggle);
+        }
+
+        const summary = toggle.querySelector('summary');
+        if(summary && !summary.querySelector('.toggle-icon')) {
+            const icon = document.createElement('span');
+            icon.className = 'toggle-icon';
+            icon.title = 'เปิด/ปิด';
+            icon.innerText = '‣';
+            summary.insertBefore(icon, summary.firstChild);
+            summary.insertBefore(document.createTextNode('\u00A0'), icon.nextSibling);
+        }
+
+        const title = toggle.querySelector('.toggle-title');
+        if(title) title.setAttribute('contenteditable', 'true');
+        const content = toggle.querySelector('.toggle-content');
+        if(content) content.setAttribute('contenteditable', 'true');
+        const delBtn = toggle.querySelector('.delete-toggle-btn');
+        if(delBtn) delBtn.setAttribute('contenteditable', 'false');
+    });
+    
+    temp.querySelectorAll('img:not(.resizing-img)').forEach(img => {
+        const wrapper = document.createElement('span');
+        wrapper.className = 'resize-wrapper';
+        wrapper.setAttribute('contenteditable', 'false');
+        img.className = 'resizing-img';
+        img.parentNode.insertBefore(wrapper, img);
+        wrapper.appendChild(img);
+    });
+
+    editor.innerHTML = temp.innerHTML;
+    editor.setAttribute('contenteditable', 'true');
+    editor.querySelectorAll('details.world-toggle').forEach(details => {
+        if(!details.hasAttribute('open')) details.setAttribute('open', '');
+    });
+    editor.focus();
+});
+
+document.getElementById('save-story-content-btn').onclick = async () => {
+    const editor = document.getElementById('story-editor');
+    const temp = document.createElement('div');
+    temp.innerHTML = editor.innerHTML;
+    
+    temp.querySelectorAll('.resize-wrapper').forEach(wrapper => {
+        const img = wrapper.querySelector('img');
+        if (img) wrapper.replaceWith(img);
+    });
+
+    temp.querySelectorAll('.drag-handle').forEach(el => el.remove());
+    temp.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+    temp.querySelectorAll('.toggle-wrapper').forEach(w => w.removeAttribute('draggable'));
+
+    try {
+        await updateDoc(doc(db, "stories", editingStoryId), { content: temp.innerHTML });
+        currentStoryContent = temp.innerHTML;
+        editor.style.display = 'none';
+        document.getElementById('story-toolbar').style.display = 'none';
+        const display = document.getElementById('story-display');
+        display.style.display = 'block';
+        
+        const { html } = parseWorldContent(currentStoryContent);
+        display.innerHTML = html;
+        
+        display.querySelectorAll('details.world-toggle').forEach(details => {
+            details.removeAttribute('open');
+        });
+        
+        showToast("บันทึกเนื้อหาสตอรี่สำเร็จ");
+    } catch (e) { alert("บันทึกล้มเหลว"); }
 };
 
 const worldEditor = document.getElementById('world-editor');
@@ -772,10 +979,7 @@ const btnWorldImage = document.getElementById('btn-world-image');
 const btnWorldToggle = document.getElementById('btn-world-toggle');
 const worldImageInput = document.getElementById('world-image-input');
 
-document.getElementById('btn-dashed-line').onclick = () => {
-    worldEditor.focus();
-    document.execCommand('insertHTML', false, '<hr class="dashed-hr"><p>&nbsp;</p>');
-};
+setupRichEditor('world-editor', 'world-display', 'world-toolbar', 'save-world-btn', 'cancel-world-btn', 'btn-world-image', 'world-image-input', 'btn-dashed-line', 'btn-world-toggle');
 
 const toggleTocBtn = document.getElementById('toggle-toc-btn');
 const closeTocInsideBtn = document.getElementById('close-toc-inside-btn'); 
@@ -786,9 +990,8 @@ const toggleIcon = toggleTocBtn ? toggleTocBtn.querySelector('i') : null;
 if (toggleTocBtn) {
     toggleTocBtn.onclick = () => {
         const isShowing = worldSidebar.classList.contains('show');
-        if (isShowing) {
-            hideSidebar();
-        } else {
+        if (isShowing) hideSidebar();
+        else {
             worldSidebar.classList.add('show');
             tocOverlay.classList.add('show');
             toggleTocBtn.classList.add('show'); 
@@ -843,16 +1046,10 @@ function parseWorldContent(rawHtml) {
     while(walker.nextNode()) {
         const node = walker.currentNode;
         const text = node.nodeValue;
-        
-        const match4 = text.match(/^\s*####\s+(.*)$/);
-        const match3 = text.match(/^\s*###\s+(.*)$/);
-        const match2 = text.match(/^\s*##\s+(.*)$/);
-        const match1 = text.match(/^\s*#\s+(.*)$/);
-
-        if (match4) nodesToReplace.push({ node, level: 4, text: match4[1] });
-        else if (match3) nodesToReplace.push({ node, level: 3, text: match3[1] });
-        else if (match2) nodesToReplace.push({ node, level: 2, text: match2[1] });
-        else if (match1) nodesToReplace.push({ node, level: 1, text: match1[1] });
+        const match = text.match(/^\s*(#{1,4})\s+(.*)$/);
+        if (match) {
+            nodesToReplace.push({ node, level: match[1].length, text: match[2] });
+        }
     }
 
     nodesToReplace.forEach(({node, level, text}) => {
@@ -865,20 +1062,11 @@ function parseWorldContent(rawHtml) {
         let p = node.parentElement;
         let customColor = null;
         while(p && p !== temp) {
-            if (p.style && p.style.color) {
-                customColor = p.style.color;
-                break;
-            }
-            if (p.hasAttribute('color')) {
-                customColor = p.getAttribute('color');
-                break;
-            }
+            if (p.style && p.style.color) { customColor = p.style.color; break; }
+            if (p.hasAttribute('color')) { customColor = p.getAttribute('color'); break; }
             p = p.parentElement;
         }
-        if (customColor) {
-            heading.style.color = customColor;
-        }
-
+        if (customColor) heading.style.color = customColor;
         node.replaceWith(heading);
     });
 
@@ -895,20 +1083,23 @@ function parseWorldContent(rawHtml) {
         idCounter++;
         const id = `toc-heading-${idCounter}`;
         el.id = id;
-        
         const isToggle = el.dataset.tocLevel === 'toggle';
-        const lvl = isToggle ? 2 : parseInt(el.dataset.tocLevel);
-
         tocList.push({ 
-            level: lvl, 
+            level: isToggle ? 2 : parseInt(el.dataset.tocLevel), 
             text: el.dataset.tocText, 
             id: id,
             isToggle: isToggle
         });
     });
 
+    temp.querySelectorAll('.drag-handle').forEach(el => el.remove());
     temp.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
     temp.querySelectorAll('.toggle-wrapper').forEach(w => w.removeAttribute('draggable'));
+    
+    temp.querySelectorAll('.resize-wrapper').forEach(wrapper => {
+        const img = wrapper.querySelector('img');
+        if (img) wrapper.replaceWith(img);
+    });
 
     return { html: temp.innerHTML, toc: tocList };
 }
@@ -930,8 +1121,9 @@ function updateWorldDisplay() {
         a.href = `#${item.id}`;
         
         if(item.isToggle) {
-            a.innerHTML = `<span style="color:var(--accent-color); font-size:0.75rem; margin-right:8px; vertical-align:middle;"></span>${item.text}`;
+            a.innerHTML = `<span style="color:var(--accent-color); font-size:0.75rem; margin-right:8px; vertical-align:middle;">◆</span>${item.text}`;
             a.style.paddingLeft = "25px";
+            a.classList.add('toc-toggle');
         } else {
             a.innerText = item.text;
         }
@@ -945,9 +1137,7 @@ function updateWorldDisplay() {
                     target.setAttribute('open', '');
                 }
             }
-            if (window.innerWidth <= 1024) {
-                hideSidebar();
-            }
+            if (window.innerWidth <= 1024) hideSidebar();
         };
         
         if (item.level === 1) a.classList.add('toc-h1');
@@ -963,11 +1153,8 @@ function updateWorldDisplay() {
 async function fetchWorldData() {
     try {
         const docSnap = await getDoc(doc(db, "world", "mainData"));
-        if (docSnap.exists()) {
-            rawWorldContent = docSnap.data().content;
-        } else {
-            rawWorldContent = "<p>พิมพ์ข้อมูลเกี่ยวกับ World ที่นี่... <br>พิมพ์ # นำหน้าเพื่อสร้างหัวข้อ</p>";
-        }
+        if (docSnap.exists()) rawWorldContent = docSnap.data().content;
+        else rawWorldContent = "<p>พิมพ์ข้อมูลเกี่ยวกับ World ที่นี่... <br>พิมพ์ # นำหน้าเพื่อสร้างหัวข้อ</p>";
         updateWorldDisplay();
     } catch (e) { console.error(e); }
 }
@@ -1020,60 +1207,51 @@ worldDisplay.addEventListener('dblclick', () => {
         const delBtn = toggle.querySelector('.delete-toggle-btn');
         if(delBtn) delBtn.setAttribute('contenteditable', 'false');
     });
+    
+    temp.querySelectorAll('img:not(.resizing-img)').forEach(img => {
+        const wrapper = document.createElement('span');
+        wrapper.className = 'resize-wrapper';
+        wrapper.setAttribute('contenteditable', 'false');
+        
+        img.className = 'resizing-img';
+        img.parentNode.insertBefore(wrapper, img);
+        wrapper.appendChild(img);
+    });
 
     worldEditor.innerHTML = temp.innerHTML;
     worldEditor.setAttribute('contenteditable', 'true');
+    
+    window.scrollTo(0, 0);
+    worldEditor.querySelectorAll('details.world-toggle').forEach(details => {
+        if(!details.hasAttribute('open')) details.setAttribute('open', '');
+    });
+    
     worldEditor.focus();
 });
 
-worldEditor.addEventListener('keydown', (e) => {
-    if (e.key === 'Tab') {
-        e.preventDefault();
-        document.execCommand('insertHTML', false, '&nbsp;&nbsp;&nbsp;&nbsp;');
-    }
-});
-
-document.querySelectorAll('.color-btn').forEach(btn => {
-    btn.onclick = () => {
-        document.execCommand('foreColor', false, btn.dataset.color);
-        worldEditor.focus();
-    };
-});
-
-cancelWorldBtn.onclick = () => {
-    worldEditor.style.display = 'none';
-    worldToolbar.style.display = 'none';
-    worldDisplay.style.display = 'block';
-};
-
 saveWorldBtn.onclick = async () => {
-    const newContent = worldEditor.innerHTML;
+    const temp = document.createElement('div');
+    temp.innerHTML = worldEditor.innerHTML;
+    
+    temp.querySelectorAll('.resize-wrapper').forEach(wrapper => {
+        const img = wrapper.querySelector('img');
+        if (img) wrapper.replaceWith(img);
+    });
+
+    temp.querySelectorAll('.drag-handle').forEach(el => el.remove());
+    temp.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+    temp.querySelectorAll('.toggle-wrapper').forEach(w => w.removeAttribute('draggable'));
+
     try {
-        await setDoc(doc(db, "world", "mainData"), { content: newContent }, { merge: true });
-        rawWorldContent = newContent;
+        await setDoc(doc(db, "world", "mainData"), { content: temp.innerHTML }, { merge: true });
+        rawWorldContent = temp.innerHTML;
         worldEditor.style.display = 'none';
         worldToolbar.style.display = 'none';
         worldDisplay.style.display = 'block';
         updateWorldDisplay();
         showToast("บันทึกข้อมูล World สำเร็จ");
+        window.scrollTo(0, 0);
     } catch (e) { alert("บันทึกล้มเหลว"); }
-};
-
-btnWorldImage.onclick = () => worldImageInput.click();
-worldImageInput.onchange = async (e) => {
-    if (e.target.files.length > 0) {
-        document.getElementById('world-loading').style.display = "inline";
-        const url = await uploadImageToCloudinary(e.target.files[0]);
-        if (url) { worldEditor.focus(); document.execCommand('insertImage', false, url); }
-        document.getElementById('world-loading').style.display = "none";
-        worldImageInput.value = "";
-    }
-};
-
-btnWorldToggle.onclick = () => {
-    worldEditor.focus();
-    const toggleHTML = `<div class="toggle-wrapper" contenteditable="false"><span class="drag-handle" title="ลากสลับที่" contenteditable="false">☰</span><details class="world-toggle" open><summary><span class="toggle-icon" title="เปิด/ปิด">‣</span>&nbsp;<span class="toggle-title" contenteditable="true" data-placeholder="พิมพ์หัวข้อที่นี่..."></span><button contenteditable="false" class="delete-toggle-btn" title="ลบกล่องนี้">&times;</button></summary><div class="toggle-content" contenteditable="true" data-placeholder="พิมพ์เนื้อหาที่นี่..."></div></details></div><p>&nbsp;</p>`;
-    document.execCommand('insertHTML', false, toggleHTML);
 };
 
 document.addEventListener('click', (e) => {
@@ -1088,81 +1266,122 @@ document.addEventListener('click', (e) => {
     }
 });
 
-worldEditor.addEventListener('click', (e) => {
-    if (e.target.classList.contains('delete-toggle-btn')) {
-        if(confirm("ลบกล่องหัวข้อนี้ใช่หรือไม่?")) {
-            const wrapper = e.target.closest('.toggle-wrapper');
-            if (wrapper) wrapper.remove();
-            else e.target.closest('details').remove(); 
+function handleToggleDelete(editorElement) {
+    editorElement.addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-toggle-btn')) {
+            if(confirm("ลบกล่องหัวข้อนี้ใช่หรือไม่?")) {
+                const wrapper = e.target.closest('.toggle-wrapper');
+                if (wrapper) wrapper.remove();
+                else e.target.closest('details').remove(); 
+            }
         }
-    }
-});
+    });
+}
+handleToggleDelete(worldEditor);
+handleToggleDelete(document.getElementById('story-editor'));
 
 let draggedToggle = null;
+const dragPlaceholder = document.createElement('div');
+dragPlaceholder.className = 'drag-placeholder';
 
-worldEditor.addEventListener('mousedown', (e) => {
-    if (e.target.classList.contains('drag-handle')) {
+function setupEditorDrag(editorElement) {
+    editorElement.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('drag-handle')) {
+            const wrapper = e.target.closest('.toggle-wrapper');
+            if(wrapper) wrapper.setAttribute('draggable', 'true');
+        }
+    });
+
+    editorElement.addEventListener('mouseup', (e) => {
         const wrapper = e.target.closest('.toggle-wrapper');
-        if(wrapper) wrapper.setAttribute('draggable', 'true');
-    }
-});
+        if(wrapper && wrapper.hasAttribute('draggable')) {
+            wrapper.removeAttribute('draggable');
+        }
+    });
 
-worldEditor.addEventListener('mouseup', (e) => {
-    const wrapper = e.target.closest('.toggle-wrapper');
-    if(wrapper && wrapper.hasAttribute('draggable')) {
-        wrapper.removeAttribute('draggable');
-    }
-});
+    editorElement.addEventListener('dragstart', (e) => {
+        const wrapper = e.target.closest('.toggle-wrapper');
+        if (wrapper && wrapper.hasAttribute('draggable')) {
+            draggedToggle = wrapper;
+            e.dataTransfer.effectAllowed = "move";
+            setTimeout(() => {
+                wrapper.style.display = 'none';
+                wrapper.parentNode.insertBefore(dragPlaceholder, wrapper.nextSibling);
+            }, 0);
+            editorElement.setAttribute('contenteditable', 'false');
+        } else {
+            e.preventDefault(); 
+        }
+    });
 
-worldEditor.addEventListener('dragstart', (e) => {
-    const wrapper = e.target.closest('.toggle-wrapper');
-    if (wrapper && wrapper.hasAttribute('draggable')) {
-        draggedToggle = wrapper;
-        e.dataTransfer.effectAllowed = "move";
-        wrapper.classList.add('dragging-toggle');
-        setTimeout(() => wrapper.style.opacity = '0.5', 0);
-        
-        worldEditor.setAttribute('contenteditable', 'false');
-    } else {
+    editorElement.addEventListener('dragend', (e) => {
+        if (draggedToggle) {
+            if (dragPlaceholder.parentNode) {
+                dragPlaceholder.parentNode.insertBefore(draggedToggle, dragPlaceholder);
+                dragPlaceholder.parentNode.removeChild(dragPlaceholder);
+            }
+            draggedToggle.style.display = 'block';
+            draggedToggle.removeAttribute('draggable');
+            draggedToggle = null;
+            editorElement.setAttribute('contenteditable', 'true');
+        }
+    });
+
+    editorElement.addEventListener('dragover', (e) => {
+        if (!draggedToggle) return;
         e.preventDefault(); 
-    }
-});
-
-worldEditor.addEventListener('dragend', (e) => {
-    const wrapper = e.target.closest('.toggle-wrapper');
-    if (wrapper) {
-        wrapper.classList.remove('dragging-toggle');
-        wrapper.style.opacity = '1';
-        wrapper.removeAttribute('draggable');
-        draggedToggle = null;
+        e.dataTransfer.dropEffect = "move";
         
-        worldEditor.setAttribute('contenteditable', 'true');
-    }
-});
+        let range;
+        if (document.caretRangeFromPoint) {
+            range = document.caretRangeFromPoint(e.clientX, e.clientY);
+        } else if (document.caretPositionFromPoint) {
+            let pos = document.caretPositionFromPoint(e.clientX, e.clientY);
+            if (pos) {
+                range = document.createRange();
+                range.setStart(pos.offsetNode, pos.offset);
+                range.collapse(true);
+            }
+        }
 
-worldEditor.addEventListener('dragover', (e) => {
-    if (!draggedToggle) return;
-    e.preventDefault(); 
-    e.dataTransfer.dropEffect = "move";
-    
-    const afterElement = getDragAfterEditorElement(worldEditor, e.clientY);
-    if (afterElement == null) {
-        worldEditor.appendChild(draggedToggle);
-    } else {
-        worldEditor.insertBefore(draggedToggle, afterElement);
-    }
-});
+        if (range && range.startContainer) {
+            let container = range.startContainer;
+            if (container.nodeType === 3) container = container.parentNode;
 
-worldEditor.addEventListener('drop', (e) => {
-    if (!draggedToggle) return;
-    e.preventDefault();
-});
+            if (editorElement.contains(container)) {
+                const toggleBlock = container.closest('.toggle-wrapper');
+                if (toggleBlock && toggleBlock !== draggedToggle) {
+                    const box = toggleBlock.getBoundingClientRect();
+                    if (e.clientY < box.top + box.height / 2) {
+                        toggleBlock.parentNode.insertBefore(dragPlaceholder, toggleBlock);
+                    } else {
+                        toggleBlock.parentNode.insertBefore(dragPlaceholder, toggleBlock.nextSibling);
+                    }
+                } else if (!toggleBlock) {
+                    range.insertNode(dragPlaceholder);
+                }
+                return;
+            }
+        }
+        
+        const afterElement = getDragAfterEditorElement(editorElement, e.clientY);
+        if (afterElement == null) {
+            editorElement.appendChild(dragPlaceholder);
+        } else {
+            editorElement.insertBefore(dragPlaceholder, afterElement);
+        }
+    });
+
+    editorElement.addEventListener('drop', (e) => {
+        if (!draggedToggle) return;
+        e.preventDefault();
+    });
+}
 
 function getDragAfterEditorElement(container, y) {
     const draggableElements = [...container.children].filter(child => {
-        return child !== draggedToggle && !child.classList.contains('dragging-toggle');
+        return child !== draggedToggle && child !== dragPlaceholder;
     });
-    
     return draggableElements.reduce((closest, child) => {
         const box = child.getBoundingClientRect();
         const offset = y - box.top - box.height / 2;
@@ -1174,5 +1393,9 @@ function getDragAfterEditorElement(container, y) {
     }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
+setupEditorDrag(worldEditor);
+setupEditorDrag(document.getElementById('story-editor'));
+
 fetchGroups();
+fetchStories();
 fetchWorldData();
