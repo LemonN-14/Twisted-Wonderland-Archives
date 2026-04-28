@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Calendar - Twisted Wonderland Archives</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="calendar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="header-auth-container">
+            <button id="auth-btn" title="เข้าสู่ระบบ"><i class="fas fa-user-circle"></i></button>
+            <div id="auth-dropdown" class="auth-dropdown">
+                <button id="btn-logout"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</button>
+            </div>
+        </div>
+        <h1>Twisted Wonderland Archives</h1>
+        <div class="header-spacer"></div>
+    </header>
+
+    <nav class="main-nav">
+        <ul class="main-tabs">
+            <li onclick="window.location.href='index.html?tab=characters-view'">Characters</li>
+            <li onclick="window.location.href='index.html?tab=story-view'">Story</li>
+            <li onclick="window.location.href='index.html?tab=gameplay-view'">Gameplay</li> 
+            <li onclick="window.location.href='index.html?tab=world-view'">World</li>
+            <li class="active">Calendar</li>
+        </ul>
+        <div class="nav-actions admin-only">
+            <button id="add-btn"><i class="fas fa-plus"></i></button>
+        </div>
+    </nav>
+
+    <main>
+        <section id="calendar-view" class="view-section active">
+            <h2 style="color: var(--accent-color); text-align: center; margin-bottom: 2rem; font-size: 1.8rem;">Academic Calendar</h2>
+            <div id="academic-calendar-view" class="sub-view active" style="display: block;">
+                <div class="calendar-layout">
+                    <div class="calendar-sidebar" id="calendar-sidebar">
+                        <h3><i class="fas fa-calendar-day"></i> รายละเอียดวันที่ <span id="selected-date-display">-</span></h3>
+                        <div id="calendar-details-content" class="calendar-event-grid">
+                            <div class="empty-state" style="padding: 1rem; font-size: 0.9rem;">คลิกที่วันที่บนปฏิทินเพื่อดูรายละเอียดกิจกรรมและวันเกิด</div>
+                        </div>
+                    </div>
+                    <div class="calendar-main">
+                        <div class="calendar-nav">
+                            <button id="prev-month-btn" class="btn-tool"><i class="fas fa-chevron-left"></i></button>
+                            <h3 id="current-month-title">มกราคม</h3>
+                            <button id="next-month-btn" class="btn-tool"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div id="calendar-main-content">
+                            <!-- Month will be rendered here by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Calendar Event Modal -->
+    <div id="calendar-modal" class="modal" style="z-index: 1010;">
+        <div class="modal-content" style="max-width: 500px; height: auto;">
+            <span class="close-btn" id="close-calendar-modal">&times;</span>
+            <h2 id="calendar-modal-title">เพิ่ม Event ใหม่</h2>
+            <form id="calendar-form">
+                <div class="form-group">
+                    <label>ชื่อ Event</label>
+                    <input type="text" id="cal-event-name" required>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>วันเริ่มต้น (เดือน/วัน) เช่น 10/25</label>
+                        <input type="text" id="cal-event-start" placeholder="MM/DD" required>
+                    </div>
+                    <div class="form-group">
+                        <label>วันสิ้นสุด (เดือน/วัน) เช่น 11/05</label>
+                        <input type="text" id="cal-event-end" placeholder="MM/DD" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>สีสัญลักษณ์</label>
+                    <div class="color-picker-container" style="display: flex; gap: 8px; align-items: center;">
+                        <input type="hidden" id="cal-event-color" value="#448aff">
+                        <button type="button" class="color-select-btn active" style="background-color: #448aff;" data-color="#448aff"></button>
+                        <button type="button" class="color-select-btn" style="background-color: #ff5252;" data-color="#ff5252"></button>
+                        <button type="button" class="color-select-btn" style="background-color: #69f0ae;" data-color="#69f0ae"></button>
+                        <button type="button" class="color-select-btn" style="background-color: #ffd740;" data-color="#ffd740"></button>
+                        <button type="button" class="color-select-btn" style="background-color: #b39ddb;" data-color="#b39ddb"></button>
+                        <button type="button" class="color-select-btn" style="background-color: #ff9800;" data-color="#ff9800"></button>
+                        <button type="button" class="color-select-btn" style="background-color: #00bcd4;" data-color="#00bcd4"></button>
+                        <input type="color" id="cal-custom-color" class="custom-color-input" title="เลือกสีอื่นๆ">
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label>รายละเอียดเพิ่มเติม</label>
+                    <textarea id="cal-event-desc" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="submit-calendar-btn" class="btn-primary">บันทึก Event</button>
+                    <span id="calendar-loading-text" style="display:none; color: #b39ddb; margin-left:10px;">กำลังบันทึก...</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal" style="z-index: 3000;">
+        <div class="modal-content" style="max-width: 400px; height: auto; padding: 2rem;">
+            <span class="close-btn" id="close-auth-modal">&times;</span>
+            <div id="auth-tabs-container">
+                <ul class="modal-tabs" id="auth-tabs">
+                    <li class="active" data-target="login-view">เข้าสู่ระบบ</li>
+                    <li data-target="signup-view">สมัครสมาชิก</li>
+                </ul>
+            </div>
+            
+            <!-- Login View -->
+            <div id="login-view" class="auth-view active">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label>อีเมล</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รหัสผ่าน</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <div class="auth-forgot">
+                        <a href="#" id="show-forgot-pw">ลืมรหัสผ่าน?</a>
+                    </div>
+                    <div class="form-actions" style="margin-top: 1rem;">
+                        <button type="submit" class="btn-primary" style="width: 100%;">เข้าสู่ระบบ</button>
+                    </div>
+                </form>
+                
+                <div class="auth-divider"><span>หรือ</span></div>
+                
+                <div class="social-login">
+                    <button id="btn-google-login" class="social-btn google"><i class="fab fa-google"></i> Google</button>
+                    <button id="btn-facebook-login" class="social-btn facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                    <button id="btn-apple-login" class="social-btn apple"><i class="fab fa-apple"></i> Apple</button>
+                </div>
+            </div>
+
+            <!-- Sign Up View -->
+            <div id="signup-view" class="auth-view">
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label>อีเมล</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รหัสผ่าน</label>
+                        <input type="password" id="signup-password" required minlength="8" maxlength="12" placeholder="8-12 ตัวอักษร (ต้องมีอังกฤษและตัวเลข)">
+                        <div id="signup-pw-error" class="auth-error">รหัสผ่านต้องมีภาษาอังกฤษและตัวเลข ความยาว 8-12 ตัวอักษร</div>
+                    </div>
+                    <div class="form-group">
+                        <label>ยืนยันรหัสผ่าน</label>
+                        <input type="password" id="signup-confirm-password" required minlength="8" maxlength="12">
+                        <div id="signup-error" class="auth-error">รหัสผ่านไม่ตรงกัน</div>
+                    </div>
+                    <div class="form-actions" style="margin-top: 1rem;">
+                        <button type="submit" id="btn-signup-submit" class="btn-primary" style="width: 100%;">สมัครสมาชิก</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Forgot Password View -->
+            <div id="forgot-pw-view" class="auth-view">
+                <h2 style="font-size: 1.2rem; margin-bottom: 10px;">รีเซ็ตรหัสผ่าน</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">กรอกอีเมลเพื่อรับลิงก์รีเซ็ตรหัสผ่าน</p>
+                <form id="forgot-pw-form">
+                    <div class="form-group">
+                        <label>อีเมล</label>
+                        <input type="email" id="forgot-email" required>
+                    </div>
+                    <div class="form-actions" style="margin-top: 1rem;">
+                        <button type="submit" class="btn-primary" style="width: 100%;">ส่งลิงก์รีเซ็ต</button>
+                        <button type="button" id="back-to-login" class="btn-tool" style="width: 100%; margin-top: 10px;">กลับไปเข้าสู่ระบบ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">บันทึกข้อมูลสำเร็จ</div>
+
+    <script type="module" src="app.js"></script>
+    <script type="module">
+        import { initCalendar } from './features/calendar.js';
+        window.addEventListener("DOMContentLoaded", () => {
+            initCalendar();
+        });
+    </script>
+</body>
+</html>

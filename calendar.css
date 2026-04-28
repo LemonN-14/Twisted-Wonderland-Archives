@@ -1,0 +1,275 @@
+.calendar-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    width: 100%;
+}
+.calendar-sidebar {
+    width: 280px;
+    background: var(--surface-light);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    position: sticky;
+    top: 20px;
+    min-height: 300px;
+    max-height: 80vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+.calendar-sidebar h3 {
+    color: var(--accent-color);
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+.calendar-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgb(0 0 0 / 25%);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+.calendar-nav h3 {
+    color: var(--accent-color);
+    margin: 0;
+    font-size: 1.5rem;
+}
+.month-block {
+    background: rgb(0 0 0 / 25%);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+}
+.days-container {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); 
+    gap: 4px;
+}
+.day-box {
+    width: 100%;
+    aspect-ratio: 1/1; 
+    display: flex;
+    flex-direction: column;
+    background: var(--surface-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    position: relative;
+    transition: 0.2s;
+    user-select: none;
+    padding: 4px;
+    overflow: hidden;
+}
+.day-box:hover {
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+.day-box.active {
+    background: rgba(191, 177, 140, 0.1);
+    border-color: var(--accent-color);
+}
+.day-box.has-bday {
+    color: #ff9800; 
+}
+.day-number {
+    align-self: flex-end;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.bday-icons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    justify-content: center; 
+    align-items: center;
+    flex: 1;
+    overflow: hidden;
+    margin-bottom: 2px;
+}
+.bday-icon {
+    width: 26px; 
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ff9800;
+}
+.bday-more {
+    font-size: 0.75rem;
+    color: #ff9800;
+    font-weight: bold;
+    background: rgba(0,0,0,0.5);
+    padding: 2px 5px;
+    border-radius: 8px;
+}
+
+.event-bars {
+    margin-top: auto;
+    width: calc(100% + 8px); 
+    margin-left: -4px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding-bottom: 2px;
+}
+.event-bar {
+    height: 5px;
+    width: 100%;
+}
+.event-bar.start { border-radius: 4px 0 0 4px; margin-left: 2px; width: calc(100% - 2px); }
+.event-bar.end { border-radius: 0 4px 4px 0; margin-right: 2px; width: calc(100% - 2px); }
+.event-bar.start.end { border-radius: 4px; margin-left: 2px; margin-right: 2px; width: calc(100% - 4px); }
+
+.color-select-btn {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: 0.2s;
+    padding: 0;
+}
+.color-select-btn:hover {
+    transform: scale(1.1);
+}
+.color-select-btn.active {
+    border-color: #fff;
+    box-shadow: 0 0 5px rgba(255,255,255,0.8);
+    transform: scale(1.1);
+}
+.custom-color-input {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    background: transparent;
+    border: 2px solid transparent;
+}
+.custom-color-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+.custom-color-input::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+.custom-color-input.active {
+    border-color: #fff;
+}
+
+.calendar-event-grid {
+    display: flex;
+    flex-direction: column;
+}
+.cal-event-item {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--accent-color);
+    cursor: grab;
+    transition: 0.2s;
+}
+.cal-event-item:active {
+    cursor: grabbing;
+}
+.cal-event-item.dragging {
+    opacity: 0.5;
+    border: 2px dashed var(--accent-color);
+}
+.cal-event-title {
+    font-weight: bold;
+    font-size: 1rem;
+    margin-bottom: 5px;
+    color: var(--text-primary);
+}
+.cal-event-date {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+.cal-event-desc {
+    font-size: 0.85rem;
+    color: #ddd;
+    white-space: pre-wrap;
+}
+.cal-bday-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid #ff9800;
+}
+.cal-bday-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+}
+.cal-bday-name {
+    font-weight: bold;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+.cal-event-actions {
+    display: flex;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+@media (max-width: 1024px) {
+    .calendar-sidebar { width: 220px; }
+}
+
+@media (max-width: 768px) {
+    .calendar-layout { 
+        flex-direction: row;
+        gap: 10px; 
+    }
+    .calendar-sidebar { 
+        width: 160px;
+        position: sticky; 
+        top: 10px;
+        max-height: 85vh; 
+        padding: 10px;
+    }
+    .calendar-main { 
+        flex: 1; 
+        min-width: 0; 
+    }
+    
+    .days-container { grid-template-columns: repeat(7, 1fr); } 
+    
+    .day-box { font-size: 0.85rem; padding: 3px; }
+    .bday-icon { width: 18px; height: 18px; }
+    .bday-more { font-size: 0.6rem; padding: 1px 3px; }
+    
+    .calendar-sidebar h3 { font-size: 0.9rem; margin-bottom: 10px; }
+    .cal-event-title { font-size: 0.85rem; }
+    .cal-event-date { font-size: 0.7rem; }
+    .cal-bday-name { font-size: 0.8rem; }
+    .cal-bday-img { width: 30px; height: 30px; }
+}

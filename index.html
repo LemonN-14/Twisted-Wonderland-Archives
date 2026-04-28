@@ -7,27 +7,36 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 </head>
 <body>
 
     <header>
+        <div class="header-auth-container">
+            <button id="auth-btn" title="เข้าสู่ระบบ"><i class="fas fa-user-circle"></i></button>
+            <div id="auth-dropdown" class="auth-dropdown">
+                <button id="btn-logout"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</button>
+            </div>
+        </div>
         <h1>Twisted Wonderland Archives</h1>
+        <div class="header-spacer"></div>
     </header>
 
     <nav class="main-nav">
         <ul class="main-tabs">
-            <li class="active" data-target="characters-view">Characters</li>
+            <li data-target="characters-view">Characters</li>
             <li data-target="story-view">Story</li>
             <li data-target="gameplay-view">Gameplay</li> 
             <li data-target="world-view">World</li>
+            <li onclick="window.location.href='calendar.html'">Calendar</li>
         </ul>
-        <div class="nav-actions">
+        <div class="nav-actions admin-only">
             <button id="add-btn"><i class="fas fa-plus"></i></button>
         </div>
     </nav>
 
     <main>
-        <section id="characters-view" class="view-section active">
+        <section id="characters-view" class="view-section">
             <ul class="sub-tabs">
                 <li class="active" data-target="nrc-grid">Night Raven College</li>
                 <li data-target="rsa-grid">Royal Sword Academy</li>
@@ -77,10 +86,13 @@
                         <button type="button" onclick="document.execCommand('justifyCenter', false, null)"><i class="fas fa-align-center"></i></button>
                         <button type="button" onclick="document.execCommand('justifyRight', false, null)"><i class="fas fa-align-right"></i></button>
                         <span class="divider"></span>
-                        
+                        <button type="button" class="btn-insert-text" data-open=":" data-close="">:</button>
+                        <button type="button" class="btn-insert-text" data-open='"' data-close='"'>""</button>
+                        <button type="button" class="btn-insert-text" data-open="[" data-close="]">[]</button>
+                        <button type="button" class="btn-insert-text" data-open="{" data-close="}">{}</button>
+                        <span class="divider"></span>
                         <button type="button" onclick="document.execCommand('insertHorizontalRule', false, null)"><i class="fas fa-minus"></i></button>
                         <button type="button" id="btn-dashed-line"><i class="fas fa-ellipsis-h"></i></button>
-                        
                         <button type="button" id="btn-world-toggle"><i class="fas fa-caret-square-down"></i></button>
                         <button type="button" id="btn-world-image"><i class="fas fa-image"></i></button>
                         <input type="file" id="world-image-input" accept="image/*" style="display:none;">
@@ -145,12 +157,12 @@
         <div class="modal-content" style="width: 90%; max-width: 1200px;">
             <span class="close-btn group-close-btn" id="close-inside-group-btn">&times;</span> 
             <div class="group-header">
-                <div class="group-actions-left">
+                <div class="group-actions-left admin-only">
                     <button id="edit-group-btn" class="btn-tool"><i class="fas fa-edit"></i></button>
                     <button id="delete-group-btn" class="btn-tool"><i class="fas fa-trash"></i></button>
                 </div>
                 <h2 id="inside-group-title"></h2>
-                <div class="group-actions-right">
+                <div class="group-actions-right admin-only">
                     <button id="add-char-btn" class="btn-primary" style="padding: 8px 15px; font-size: 0.9rem;"><i class="fas fa-plus"></i> <span class="hide-mobile">เพิ่มตัวละคร</span></button>
                 </div>
             </div>
@@ -194,7 +206,7 @@
                         <div class="form-group"><label>ชื่อญี่ปุ่น</label><input type="text" id="char-jp-name"></div>
                         <div class="form-group full-width"><label>ชื่ออื่นๆ</label><textarea id="char-aliases" rows="3"></textarea></div>
                         <div class="form-group"><label>ชั้นปี</label><input type="text" id="char-year"></div>
-                        <div class="form-group"><label>วันเกิด</label><input type="text" id="char-bday"></div>
+                        <div class="form-group"><label>วันเกิด (เช่น 18/01 หรือ 18 มกราคม)</label><input type="text" id="char-bday"></div>
                         <div class="form-group"><label>ราศี</label><input type="text" id="char-zodiac"></div>
                         <div class="form-group full-width"><label>อายุ</label><textarea id="char-age" rows="2"></textarea></div>
                         <div class="form-group"><label>ส่วนสูง (cm)</label><input type="text" id="char-height"></div>
@@ -332,10 +344,15 @@
                     <button type="button" onclick="document.execCommand('justifyCenter', false, null)"><i class="fas fa-align-center"></i></button>
                     <button type="button" onclick="document.execCommand('justifyRight', false, null)"><i class="fas fa-align-right"></i></button>
                     <span class="divider"></span>
+                    <button type="button" class="btn-insert-text" data-open=":" data-close="">:</button>
+                    <button type="button" class="btn-insert-text" data-open='"' data-close='"'>""</button>
+                    <button type="button" class="btn-insert-text" data-open="[" data-close="]">[]</button>
+                    <button type="button" class="btn-insert-text" data-open="{" data-close="}">{}</button>
+                    <span class="divider"></span>
                     <button type="button" onclick="document.execCommand('insertHorizontalRule', false, null)"><i class="fas fa-minus"></i></button>
-                    <button type="button" id="btn-story-dashed-line"><i class="fas fa-ellipsis-h"></i></button>
-                    <button type="button" id="btn-story-toggle"><i class="fas fa-caret-square-down"></i></button>
-                    <button type="button" id="btn-story-image"><i class="fas fa-image"></i></button>
+                    <button type="button" id="btn-dashed-line"><i class="fas fa-ellipsis-h"></i></button>
+                    <button type="button" id="btn-world-toggle"><i class="fas fa-caret-square-down"></i></button>
+                    <button type="button" id="btn-world-image"><i class="fas fa-image"></i></button>
                     <input type="file" id="story-image-input" accept="image/*" style="display:none;">
                     <span class="divider"></span>
                     <div class="color-picker" style="display: flex; gap: 5px; align-items: center;">
@@ -366,6 +383,82 @@
             <div class="form-actions">
                 <button type="button" id="cancel-crop-btn" class="btn-tool" style="margin-right: 15px; padding: 10px 20px;">ยกเลิก</button>
                 <button type="button" id="confirm-crop-btn" class="btn-primary">ยืนยันการตัด</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="modal" style="z-index: 3000;">
+        <div class="modal-content" style="max-width: 400px; height: auto; padding: 2rem;">
+            <span class="close-btn" id="close-auth-modal">&times;</span>
+            <div id="auth-tabs-container">
+                <ul class="modal-tabs" id="auth-tabs">
+                    <li class="active" data-target="login-view">เข้าสู่ระบบ</li>
+                    <li data-target="signup-view">สมัครสมาชิก</li>
+                </ul>
+            </div>
+            
+            <div id="login-view" class="auth-view active">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label>อีเมล</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รหัสผ่าน</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <div class="auth-forgot">
+                        <a href="#" id="show-forgot-pw">ลืมรหัสผ่าน?</a>
+                    </div>
+                    <div class="form-actions" style="margin-top: 1rem;">
+                        <button type="submit" class="btn-primary" style="width: 100%;">เข้าสู่ระบบ</button>
+                    </div>
+                </form>
+                
+                <div class="auth-divider"><span>หรือ</span></div>
+                
+                <div class="social-login">
+                    <button id="btn-google-login" class="social-btn google"><i class="fab fa-google"></i> Google</button>
+                    <button id="btn-facebook-login" class="social-btn facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                    <button id="btn-apple-login" class="social-btn apple"><i class="fab fa-apple"></i> Apple</button>
+                </div>
+            </div>
+
+            <div id="signup-view" class="auth-view">
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label>อีเมล</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รหัสผ่าน</label>
+                        <input type="password" id="signup-password" required minlength="8" maxlength="12" placeholder="8-12 ตัวอักษร (ต้องมีอังกฤษและตัวเลข)">
+                        <div id="signup-pw-error" class="auth-error">รหัสผ่านต้องมีภาษาอังกฤษและตัวเลข ความยาว 8-12 ตัวอักษร</div>
+                    </div>
+                    <div class="form-group">
+                        <label>ยืนยันรหัสผ่าน</label>
+                        <input type="password" id="signup-confirm-password" required minlength="8" maxlength="12">
+                        <div id="signup-error" class="auth-error">รหัสผ่านไม่ตรงกัน</div>
+                    </div>
+                    <div class="form-actions" style="margin-top: 1rem;">
+                        <button type="submit" id="btn-signup-submit" class="btn-primary" style="width: 100%;">สมัครสมาชิก</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="forgot-pw-view" class="auth-view">
+                <h2 style="font-size: 1.2rem; margin-bottom: 10px;">รีเซ็ตรหัสผ่าน</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">กรอกอีเมลเพื่อรับลิงก์รีเซ็ตรหัสผ่าน</p>
+                <form id="forgot-pw-form">
+                    <div class="form-group">
+                        <label>อีเมล</label>
+                        <input type="email" id="forgot-email" required>
+                    </div>
+                    <div class="form-actions" style="margin-top: 1rem;">
+                        <button type="submit" class="btn-primary" style="width: 100%;">ส่งลิงก์รีเซ็ต</button>
+                        <button type="button" id="back-to-login" class="btn-tool" style="width: 100%; margin-top: 10px;">กลับไปเข้าสู่ระบบ</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
